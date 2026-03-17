@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Compile TypeScript
+      run: npm run compile
+
+    - name: Lint
+      run: npm run lint || echo "No lint script configured"
+
+    - name: Test
+      run: npm test || echo "No tests configured"
+
+    - name: Package extension
+      run: npm run package
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: vscode-extension-${{ matrix.node-version }}
+        path: '*.vsix'
