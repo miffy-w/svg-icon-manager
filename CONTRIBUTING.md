@@ -41,7 +41,7 @@ Enhancement suggestions are also welcome! Please include:
 1. **Fork and Clone the Repository**
 
    ```bash
-   git clone https://github.com/your-username/svg-icon-manager.git
+   git clone https://github.com/miffy-w/svg-icon-manager.git
    cd svg-icon-manager
    ```
 
@@ -149,8 +149,8 @@ By contributing, you agree that your contributions will be licensed under the MI
 If you need help:
 
 - Check the [Documentation](README.md)
-- Search [existing issues](https://github.com/your-username/svg-icon-manager/issues)
-- Start a [discussion](https://github.com/your-username/svg-icon-manager/discussions)
+- Search [existing issues](https://github.com/miffy-w/svg-icon-manager/issues)
+- Start a [discussion](https://github.com/miffy-w/svg-icon-manager/discussions)
 - Ask a question in your PR
 
 ## 🙏 Thank You

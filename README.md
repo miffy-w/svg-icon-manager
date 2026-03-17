@@ -1,13 +1,13 @@
 # SVG Icon Manager
 
-![VS Code](https://img.shields.io/visual-studio-marketplace/v/your-publisher-name.svg?style=flat-square)
-![License](https://img.shields.io/visual-studio-marketplace/l/your-publisher-name.svg?style=flat-square)
-![Rating](https://img.shields.io/visual-studio-marketplace/r/your-publisher-name.svg?style=flat-square)
-![Downloads](https://img.shields.io/visual-studio-marketplace/d/your-publisher-name.svg?style=flat-square)
+![VS Code](https://img.shields.io/visual-studio-marketplace/v/miffy-w.svg-icon-manager.svg?style=flat-square)
+![License](https://img.shields.io/visual-studio-marketplace/l/miffy-w.svg-icon-manager.svg?style=flat-square)
+![Rating](https://img.shields.io/visual-studio-marketplace/r/miffy-w.svg-icon-manager.svg?style=flat-square)
+![Downloads](https://img.shields.io/visual-studio-marketplace/d/miffy-w.svg-icon-manager.svg?style=flat-square)
 
 A beautiful and efficient VS Code extension for managing SVG icons in your workspace. Scan, preview, search, and organize all your SVG icons with an intuitive card-based gallery interface.
 
-![Preview](https://github.com/your-username/svg-icon-manager/raw/main/resources/preview.png)
+![Preview](https://github.com/miffy-w/svg-icon-manager/raw/main/resources/preview.png)
 
 ## ✨ Features
 
@@ -34,7 +34,7 @@ A beautiful and efficient VS Code extension for managing SVG icons in your works
 
 ### Manual Installation
 
-1. Download the latest `.vsix` file from the [Releases](https://github.com/your-username/svg-icon-manager/releases) page
+1. Download the latest `.vsix` file from the [Releases](https://github.com/miffy-w/svg-icon-manager/releases) page
 2. Open VS Code
 3. Press `Ctrl+Shift+P` (Mac: `Cmd+Shift+P`)
 4. Type "Extensions: Install from VSIX..."
@@ -108,7 +108,7 @@ You can customize the extension behavior through VS Code settings:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/svg-icon-manager.git
+git clone https://github.com/miffy-w/svg-icon-manager.git
 cd svg-icon-manager
 
 # Install dependencies
@@ -152,16 +152,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Support
 
-- 🐛 [Report a bug](https://github.com/your-username/svg-icon-manager/issues)
-- 💡 [Request a feature](https://github.com/your-username/svg-icon-manager/issues)
-- 💬 [Discussions](https://github.com/your-username/svg-icon-manager/discussions)
+- 🐛 [Report a bug](https://github.com/miffy-w/svg-icon-manager/issues)
+- 💡 [Request a feature](https://github.com/miffy-w/svg-icon-manager/issues)
+- 💬 [Discussions](https://github.com/miffy-w/svg-icon-manager/discussions)
 
 ## 🔗 Links
 
-- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=your-publisher-name.svg-icon-manager)
-- [GitHub Repository](https://github.com/your-username/svg-icon-manager)
+- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=miffy-w.svg-icon-manager)
+- [GitHub Repository](https://github.com/miffy-w/svg-icon-manager)
 - [Changelog](CHANGELOG.md)
 
 ---
 
-Made with ❤️ by [Your Name](https://github.com/your-username)
+Made with ❤️ by [miffy-w](https://github.com/miffy-w)
