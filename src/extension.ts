@@ -1,236 +1,268 @@
-import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
 
 interface SvgIcon {
-    name: string;
-    path: string;
-    relativePath: string;
-    size: { width: number; height: number };
-    content: string;
+  name: string;
+  path: string;
+  relativePath: string;
+  size: { width: number; height: number };
+  content: string;
 }
 
 class IconScanner {
-    private icons: SvgIcon[] = [];
-    private ignorePatterns: string[] = [];
+  private icons: SvgIcon[] = [];
+  private ignorePatterns: string[] = [];
 
-    constructor(private workspaceRoot: string | undefined) {
-        this.loadConfig();
+  constructor(private workspaceRoot: string | undefined) {
+    this.loadConfig();
+  }
+
+  private loadConfig() {
+    const config = vscode.workspace.getConfiguration("svgIconManager");
+    this.ignorePatterns = config.get<string[]>("ignorePatterns", [
+      "node_modules",
+      ".git",
+      "out",
+      "dist",
+      "build",
+      "coverage",
+    ]);
+  }
+
+  async scan(): Promise<SvgIcon[]> {
+    this.icons = [];
+    this.loadConfig();
+
+    if (!this.workspaceRoot) {
+      return this.icons;
     }
 
-    private loadConfig() {
-        const config = vscode.workspace.getConfiguration('svgIconManager');
-        this.ignorePatterns = config.get<string[]>('ignorePatterns', ['node_modules', '.git', 'out', 'dist', 'build', 'coverage']);
+    const svgFiles = await this.findSvgFiles(this.workspaceRoot);
+
+    for (const filePath of svgFiles) {
+      try {
+        const icon = await this.parseSvgFile(filePath);
+        if (icon) {
+          this.icons.push(icon);
+        }
+      } catch (error) {
+        console.error(`Error parsing SVG file ${filePath}:`, error);
+      }
     }
 
-    async scan(): Promise<SvgIcon[]> {
-        this.icons = [];
-        this.loadConfig();
-        
-        if (!this.workspaceRoot) {
-            return this.icons;
-        }
+    this.icons.sort((a, b) => a.name.localeCompare(b.name));
+    return this.icons;
+  }
 
-        const svgFiles = await this.findSvgFiles(this.workspaceRoot);
-        
-        for (const filePath of svgFiles) {
-            try {
-                const icon = await this.parseSvgFile(filePath);
-                if (icon) {
-                    this.icons.push(icon);
-                }
-            } catch (error) {
-                console.error(`Error parsing SVG file ${filePath}:`, error);
-            }
-        }
-        
-        this.icons.sort((a, b) => a.name.localeCompare(b.name));
-        return this.icons;
+  private async findSvgFiles(
+    dir: string,
+    depth: number = 0,
+    maxDepth: number = 10,
+  ): Promise<string[]> {
+    const files: string[] = [];
+
+    if (depth > maxDepth) {
+      return files;
     }
 
-    private async findSvgFiles(dir: string, depth: number = 0, maxDepth: number = 10): Promise<string[]> {
-        const files: string[] = [];
-        
-        if (depth > maxDepth) {
-            return files;
+    try {
+      const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+
+        if (this.ignorePatterns.includes(entry.name)) {
+          continue;
         }
-        
-        try {
-            const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-            
-            for (const entry of entries) {
-                const fullPath = path.join(dir, entry.name);
-                
-                if (this.ignorePatterns.includes(entry.name)) {
-                    continue;
-                }
-                
-                if (entry.isDirectory()) {
-                    const subFiles = await this.findSvgFiles(fullPath, depth + 1, maxDepth);
-                    files.push(...subFiles);
-                } else if (entry.name.toLowerCase().endsWith('.svg')) {
-                    files.push(fullPath);
-                }
-            }
-        } catch (error) {
-            console.error(`Error reading directory ${dir}:`, error);
+
+        if (entry.isDirectory()) {
+          const subFiles = await this.findSvgFiles(
+            fullPath,
+            depth + 1,
+            maxDepth,
+          );
+          files.push(...subFiles);
+        } else if (entry.name.toLowerCase().endsWith(".svg")) {
+          files.push(fullPath);
         }
-        
-        return files;
+      }
+    } catch (error) {
+      console.error(`Error reading directory ${dir}:`, error);
     }
 
-    private async parseSvgFile(filePath: string): Promise<SvgIcon | null> {
-        try {
-            const content = await fs.promises.readFile(filePath, 'utf-8');
-            const relativePath = path.relative(this.workspaceRoot!, filePath);
-            const name = path.basename(filePath, '.svg');
-            
-            const widthMatch = content.match(/width=["'](\d+(?:\.\d+)?)(?:px|)?["']/i);
-            const heightMatch = content.match(/height=["'](\d+(?:\.\d+)?)(?:px|)?["']/i);
-            const viewBoxMatch = content.match(/viewBox=["'](\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)["']/i);
-            
-            let width = 0;
-            let height = 0;
-            
-            if (widthMatch && heightMatch) {
-                width = parseFloat(widthMatch[1]);
-                height = parseFloat(heightMatch[1]);
-            } else if (viewBoxMatch) {
-                width = parseFloat(viewBoxMatch[3]);
-                height = parseFloat(viewBoxMatch[4]);
-            }
-            
-            return {
-                name,
-                path: filePath,
-                relativePath: relativePath.replace(/\\/g, '/'),
-                size: { width, height },
-                content
-            };
-        } catch (error) {
-            console.error(`Error parsing SVG file ${filePath}:`, error);
-            return null;
-        }
+    return files;
+  }
+
+  private async parseSvgFile(filePath: string): Promise<SvgIcon | null> {
+    try {
+      const content = await fs.promises.readFile(filePath, "utf-8");
+      const relativePath = path.relative(this.workspaceRoot!, filePath);
+      const name = path.basename(filePath, ".svg");
+
+      const widthMatch = content.match(
+        /width=["'](\d+(?:\.\d+)?)(?:px|)?["']/i,
+      );
+      const heightMatch = content.match(
+        /height=["'](\d+(?:\.\d+)?)(?:px|)?["']/i,
+      );
+      const viewBoxMatch = content.match(
+        /viewBox=["'](\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)["']/i,
+      );
+
+      let width = 0;
+      let height = 0;
+
+      if (widthMatch && heightMatch) {
+        width = parseFloat(widthMatch[1]);
+        height = parseFloat(heightMatch[1]);
+      } else if (viewBoxMatch) {
+        width = parseFloat(viewBoxMatch[3]);
+        height = parseFloat(viewBoxMatch[4]);
+      }
+
+      return {
+        name,
+        path: filePath,
+        relativePath: relativePath.replace(/\\/g, "/"),
+        size: { width, height },
+        content,
+      };
+    } catch (error) {
+      console.error(`Error parsing SVG file ${filePath}:`, error);
+      return null;
     }
+  }
 }
 
 class IconPanel {
-    private panel: vscode.WebviewPanel | undefined;
-    private icons: SvgIcon[] = [];
-    private filteredIcons: SvgIcon[] = [];
-    private directories: string[] = [];
-    private selectedDirectory: string = '';
-    private searchQuery: string = '';
-    private scanner: IconScanner;
+  private panel: vscode.WebviewPanel | undefined;
+  private icons: SvgIcon[] = [];
+  private filteredIcons: SvgIcon[] = [];
+  private directories: string[] = [];
+  private selectedDirectory: string = "";
+  private searchQuery: string = "";
+  private scanner: IconScanner;
 
-    constructor(private context: vscode.ExtensionContext, private workspaceRoot: string | undefined, scanner: IconScanner) {
-        this.scanner = scanner;
+  constructor(
+    private context: vscode.ExtensionContext,
+    private workspaceRoot: string | undefined,
+    scanner: IconScanner,
+  ) {
+    this.scanner = scanner;
+  }
+
+  async show() {
+    if (this.panel) {
+      this.panel.reveal();
+      return;
     }
 
-    async show() {
-        if (this.panel) {
-            this.panel.reveal();
-            return;
+    this.panel = vscode.window.createWebviewPanel(
+      "svgIconManager",
+      "SVG Icon Manager",
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [],
+      },
+    );
+
+    this.panel.webview.onDidReceiveMessage(
+      async (message) => {
+        switch (message.command) {
+          case "search":
+            this.searchQuery = message.query;
+            this.applyFilters();
+            break;
+          case "filterByPath":
+            this.selectedDirectory = message.path;
+            this.applyFilters();
+            break;
+          case "copyPath":
+            this.copyPath(message.path);
+            break;
+          case "copyImport":
+            this.copyImport(message.path, message.name);
+            break;
+          case "openFile":
+            this.openFile(message.path);
+            break;
+          case "refresh":
+            await this.refresh();
+            break;
         }
+      },
+      undefined,
+      this.context.subscriptions,
+    );
 
-        this.panel = vscode.window.createWebviewPanel(
-            'svgIconManager',
-            'SVG Icon Manager',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: []
-            }
-        );
+    this.panel.onDidDispose(
+      () => {
+        this.panel = undefined;
+      },
+      null,
+      this.context.subscriptions,
+    );
 
-        this.panel.webview.onDidReceiveMessage(
-            async (message) => {
-                switch (message.command) {
-                    case 'search':
-                        this.searchQuery = message.query;
-                        this.applyFilters();
-                        break;
-                    case 'filterByPath':
-                        this.selectedDirectory = message.path;
-                        this.applyFilters();
-                        break;
-                    case 'copyPath':
-                        this.copyPath(message.path);
-                        break;
-                    case 'copyImport':
-                        this.copyImport(message.path, message.name);
-                        break;
-                    case 'openFile':
-                        this.openFile(message.path);
-                        break;
-                    case 'refresh':
-                        await this.refresh();
-                        break;
-                }
-            },
-            undefined,
-            this.context.subscriptions
-        );
+    await this.refresh();
+  }
 
-        this.panel.onDidDispose(() => {
-            this.panel = undefined;
-        }, null, this.context.subscriptions);
+  async refresh() {
+    this.icons = await this.scanner.scan();
+    this.directories = this.extractDirectories(this.icons);
+    this.filteredIcons = [...this.icons];
+    this.updateFull();
+  }
 
-        await this.refresh();
+  private updateFull() {
+    if (this.panel) {
+      this.panel.webview.html = this.getWebviewContent();
+    }
+  }
+
+  private extractDirectories(icons: SvgIcon[]): string[] {
+    const dirSet = new Set<string>();
+    icons.forEach((icon) => {
+      const dir = path.dirname(icon.relativePath);
+      if (dir !== ".") {
+        dirSet.add(dir);
+      }
+    });
+    return Array.from(dirSet).sort();
+  }
+
+  private applyFilters() {
+    let result = [...this.icons];
+
+    // Apply directory filter
+    if (this.selectedDirectory) {
+      result = result.filter((icon) => {
+        const dir = path.dirname(icon.relativePath);
+        return dir === this.selectedDirectory;
+      });
     }
 
-    async refresh() {
-        this.icons = await this.scanner.scan();
-        this.directories = this.extractDirectories(this.icons);
-        this.filteredIcons = [...this.icons];
-        this.updateFull();
+    // Apply search filter
+    if (this.searchQuery.trim()) {
+      const lowerQuery = this.searchQuery.toLowerCase();
+      result = result.filter(
+        (icon) =>
+          icon.name.toLowerCase().includes(lowerQuery) ||
+          icon.relativePath.toLowerCase().includes(lowerQuery),
+      );
     }
 
-    private updateFull() {
-        if (this.panel) {
-            this.panel.webview.html = this.getWebviewContent();
-        }
-    }
+    this.filteredIcons = result;
+    this.updateIcons();
+  }
 
-    private extractDirectories(icons: SvgIcon[]): string[] {
-        const dirSet = new Set<string>();
-        icons.forEach(icon => {
-            const dir = path.dirname(icon.relativePath);
-            if (dir !== '.') {
-                dirSet.add(dir);
-            }
-        });
-        return Array.from(dirSet).sort();
-    }
-
-    private applyFilters() {
-        let result = [...this.icons];
-        
-        // Apply directory filter
-        if (this.selectedDirectory) {
-            result = result.filter(icon => {
-                const dir = path.dirname(icon.relativePath);
-                return dir === this.selectedDirectory;
-            });
-        }
-        
-        // Apply search filter
-        if (this.searchQuery.trim()) {
-            const lowerQuery = this.searchQuery.toLowerCase();
-            result = result.filter(icon =>
-                icon.name.toLowerCase().includes(lowerQuery) ||
-                icon.relativePath.toLowerCase().includes(lowerQuery)
-            );
-        }
-        
-        this.filteredIcons = result;
-        this.updateIcons();
-    }
-
-    private updateIcons() {
-        if (this.panel) {
-            const cardsHtml = this.filteredIcons.map(icon => `
+  private updateIcons() {
+    if (this.panel) {
+      const cardsHtml = this.filteredIcons
+        .map(
+          (icon) => `
                 <div class="icon-card" data-path="${icon.path}" data-name="${icon.name}" data-relative="${icon.relativePath}">
                     <div class="icon-preview">
                         ${icon.content}
@@ -259,19 +291,23 @@ class IconPanel {
                         </button>
                     </div>
                 </div>
-            `).join('');
-            
-            this.panel.webview.postMessage({
-                command: 'updateIcons',
-                icons: cardsHtml,
-                count: this.filteredIcons.length,
-                total: this.icons.length
-            });
-        }
-    }
+            `,
+        )
+        .join("");
 
-    private getWebviewContent(): string {
-        const cardsHtml = this.filteredIcons.map(icon => `
+      this.panel.webview.postMessage({
+        command: "updateIcons",
+        icons: cardsHtml,
+        count: this.filteredIcons.length,
+        total: this.icons.length,
+      });
+    }
+  }
+
+  private getWebviewContent(): string {
+    const cardsHtml = this.filteredIcons
+      .map(
+        (icon) => `
             <div class="icon-card" data-path="${icon.path}" data-name="${icon.name}" data-relative="${icon.relativePath}">
                 <div class="icon-preview">
                     ${icon.content}
@@ -300,13 +336,18 @@ class IconPanel {
                     </button>
                 </div>
             </div>
-        `).join('');
+        `,
+      )
+      .join("");
 
-        const directoriesOptions = this.directories.map(dir => 
-            `<option value="${dir}" ${this.selectedDirectory === dir ? 'selected' : ''}>${dir}</option>`
-        ).join('');
+    const directoriesOptions = this.directories
+      .map(
+        (dir) =>
+          `<option value="${dir}" ${this.selectedDirectory === dir ? "selected" : ""}>${dir}</option>`,
+      )
+      .join("");
 
-        return `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -568,8 +609,8 @@ class IconPanel {
     <div class="header">
         <h1>SVG Icons</h1>
         <div class="header-stats">
-            ${this.filteredIcons.length} ${this.filteredIcons.length === 1 ? 'icon' : 'icons'}
-            ${this.filteredIcons.length !== this.icons.length ? `(filtered from ${this.icons.length})` : ''}
+            ${this.filteredIcons.length} ${this.filteredIcons.length === 1 ? "icon" : "icons"}
+            ${this.filteredIcons.length !== this.icons.length ? `(filtered from ${this.icons.length})` : ""}
         </div>
         <div class="filters">
             <div class="search-box">
@@ -666,46 +707,49 @@ class IconPanel {
     </script>
 </body>
 </html>`;
-    }
+  }
 
-    private async copyPath(path: string) {
-        await vscode.env.clipboard.writeText(path);
-        vscode.window.showInformationMessage('Path copied to clipboard!');
-    }
+  private async copyPath(path: string) {
+    await vscode.env.clipboard.writeText(path);
+    vscode.window.showInformationMessage("Path copied to clipboard!");
+  }
 
-    private async copyImport(path: string, name: string) {
-        const importCode = `import ${name.replace(/[^a-zA-Z0-9]/g, '')} from '${path}';`;
-        await vscode.env.clipboard.writeText(importCode);
-        vscode.window.showInformationMessage('Import code copied to clipboard!');
-    }
+  private async copyImport(path: string, name: string) {
+    const importCode = `import ${name.replace(/[^a-zA-Z0-9]/g, "")} from '${path}';`;
+    await vscode.env.clipboard.writeText(importCode);
+    vscode.window.showInformationMessage("Import code copied to clipboard!");
+  }
 
-    private async openFile(path: string) {
-        const uri = vscode.Uri.file(path);
-        await vscode.window.showTextDocument(uri);
-    }
+  private async openFile(path: string) {
+    const uri = vscode.Uri.file(path);
+    await vscode.window.showTextDocument(uri);
+  }
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('SVG Icon Manager is now active!');
-    
-    const workspaceRoot = vscode.workspace.rootPath;
-    const scanner = new IconScanner(workspaceRoot);
-    const iconPanel = new IconPanel(context, workspaceRoot, scanner);
-    
-    // Show panel command
-    const showPanelCommand = vscode.commands.registerCommand('svgIconManager.show', () => {
-        iconPanel.show();
-    });
-    
-    // Refresh command
-    const refreshCommand = vscode.commands.registerCommand('svgIconManager.refresh', () => {
-        iconPanel.refresh();
-    });
-    
-    context.subscriptions.push(
-        showPanelCommand,
-        refreshCommand
-    );
+  console.log("SVG Icon Manager is now active!");
+
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const scanner = new IconScanner(workspaceRoot);
+  const iconPanel = new IconPanel(context, workspaceRoot, scanner);
+
+  // Show panel command
+  const showPanelCommand = vscode.commands.registerCommand(
+    "svgIconManager.show",
+    () => {
+      iconPanel.show();
+    },
+  );
+
+  // Refresh command
+  const refreshCommand = vscode.commands.registerCommand(
+    "svgIconManager.refresh",
+    () => {
+      iconPanel.refresh();
+    },
+  );
+
+  context.subscriptions.push(showPanelCommand, refreshCommand);
 }
 
 export function deactivate() {}

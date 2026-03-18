@@ -5,6 +5,7 @@ Use this checklist to ensure everything is ready before publishing the extension
 ## Pre-Release Checklist
 
 ### 1. Code Quality
+
 - [ ] All TypeScript errors are fixed
 - [ ] Code compiles successfully (`npm run compile`)
 - [ ] No console errors or warnings
@@ -13,6 +14,7 @@ Use this checklist to ensure everything is ready before publishing the extension
 - [ ] Tested on different screen sizes
 
 ### 2. Documentation
+
 - [ ] README.md is complete and accurate
 - [ ] CHANGELOG.md is updated with new features
 - [ ] LICENSE file is included
@@ -20,6 +22,7 @@ Use this checklist to ensure everything is ready before publishing the extension
 - [ ] All placeholder text is replaced (publisher name, author, etc.)
 
 ### 3. Configuration
+
 - [ ] package.json is properly configured
   - [ ] Publisher name is set
   - [ ] Version number is updated
@@ -30,6 +33,7 @@ Use this checklist to ensure everything is ready before publishing the extension
 - [ ] .gitignore is properly configured
 
 ### 4. Testing
+
 - [ ] Tested in development mode (F5)
 - [ ] All keyboard shortcuts work
 - [ ] Search functionality works correctly
@@ -40,6 +44,7 @@ Use this checklist to ensure everything is ready before publishing the extension
 - [ ] Performance is acceptable
 
 ### 5. Publishing Requirements
+
 - [ ] VS Code Marketplace account created
 - [ ] Publisher name registered
 - [ ] Personal Access Token (PAT) generated
@@ -48,21 +53,25 @@ Use this checklist to ensure everything is ready before publishing the extension
 ## Publishing Steps
 
 ### 1. Update Version
+
 ```bash
 # Update version in package.json
 npm version patch  # or minor, major
 ```
 
 ### 2. Update CHANGELOG
+
 ```markdown
 ## [1.0.1] - 2026-03-17
 
 ### Fixed
+
 - Fixed search box losing focus
 - Fixed icon card height stretching
 ```
 
 ### 3. Commit Changes
+
 ```bash
 git add .
 git commit -m "chore: prepare for release v1.0.1"
@@ -71,17 +80,20 @@ git push origin main --tags
 ```
 
 ### 4. Package Extension
+
 ```bash
 npm run package
 ```
 
 ### 5. Test Package
+
 ```bash
 # Install the .vsix file in VS Code
 # Test all features
 ```
 
 ### 6. Publish to Marketplace
+
 ```bash
 # Using vsce
 npm run publish
@@ -91,6 +103,7 @@ vsce publish
 ```
 
 ### 7. Create GitHub Release
+
 ```bash
 # Go to GitHub releases page
 # Create a new release from the tag
@@ -109,21 +122,27 @@ vsce publish
 ## Common Issues
 
 ### Publisher Name Not Found
+
 ```
 Error: Publisher 'your-name' not found
 ```
+
 Solution: Register the publisher name at https://marketplace.visualstudio.com/manage
 
 ### Authentication Failed
+
 ```
 Error: Invalid Personal Access Token
 ```
+
 Solution: Generate a new PAT at https://marketplace.visualstudio.com/manage/publishers
 
 ### Package Size Too Large
+
 ```
 Error: Extension size exceeds 100MB
 ```
+
 Solution: Check .vscodeignore and exclude unnecessary files
 
 ## Resources
