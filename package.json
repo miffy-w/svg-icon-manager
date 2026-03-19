@@ -2,7 +2,7 @@
   "name": "svg-icon-manager",
   "displayName": "SVG Icon Manager",
   "description": "Scan, preview, and manage all SVG icons in your workspace with a beautiful card-based gallery",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "svg-icon-manager",
   "author": "miffy-w",
   "license": "MIT",
