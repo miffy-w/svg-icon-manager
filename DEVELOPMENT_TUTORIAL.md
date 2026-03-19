@@ -27,6 +27,7 @@
 ### 开发环境配置
 
 1. **安装 Node.js**
+
    ```bash
    node --version  # 建议 v18 或更高版本
    ```
@@ -45,6 +46,7 @@
 ### 什么是 VSCode 插件？
 
 VSCode 插件（Extension）是一种扩展 VSCode 功能的方式，可以：
+
 - 添加新的命令和快捷键
 - 提供 UI 元素（如侧边栏、状态栏、Webview 面板）
 - 与编辑器深度集成
@@ -78,6 +80,7 @@ graph TD
 #### 激活条件类型
 
 常见的激活事件：
+
 - `onCommand:extensionId.commandName` - 执行特定命令时激活
 - `onLanguage:javascript` - 打开特定语言文件时激活
 - `onStartupFinished` - VSCode 启动完成后激活
@@ -143,7 +146,7 @@ graph TB
 VSCode 提供的 API 集合，通过 `vscode` 模块访问：
 
 ```typescript
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 ```
 
 ##### 常用 API 模块详解
@@ -152,12 +155,12 @@ import * as vscode from 'vscode';
 
 ```typescript
 // 注册命令
-vscode.commands.registerCommand('extension.commandName', () => {
-    // 命令执行逻辑
+vscode.commands.registerCommand("extension.commandName", () => {
+  // 命令执行逻辑
 });
 
 // 执行命令
-vscode.commands.executeCommand('workbench.action.files.save');
+vscode.commands.executeCommand("workbench.action.files.save");
 
 // 获取所有命令
 vscode.commands.getCommands();
@@ -167,41 +170,44 @@ vscode.commands.getCommands();
 
 ```typescript
 // 显示信息消息
-vscode.window.showInformationMessage('操作成功！');
+vscode.window.showInformationMessage("操作成功！");
 
 // 显示警告消息
-vscode.window.showWarningMessage('请注意此操作');
+vscode.window.showWarningMessage("请注意此操作");
 
 // 显示错误消息
-vscode.window.showErrorMessage('操作失败！');
+vscode.window.showErrorMessage("操作失败！");
 
 // 显示输入框
 const input = await vscode.window.showInputBox({
-    placeHolder: '请输入...',
-    prompt: '提示信息'
+  placeHolder: "请输入...",
+  prompt: "提示信息",
 });
 
 // 显示选择框
 const selection = await vscode.window.showQuickPick([
-    { label: '选项1', description: '描述1' },
-    { label: '选项2', description: '描述2' }
+  { label: "选项1", description: "描述1" },
+  { label: "选项2", description: "描述2" },
 ]);
 
 // 创建 Webview 面板
 const panel = vscode.window.createWebviewPanel(
-    'webviewId',           // 唯一标识
-    '面板标题',            // 标题
-    vscode.ViewColumn.One, // 显示位置
-    { enableScripts: true } // 配置选项
+  "webviewId", // 唯一标识
+  "面板标题", // 标题
+  vscode.ViewColumn.One, // 显示位置
+  { enableScripts: true }, // 配置选项
 );
 
 // 显示进度通知
-await vscode.window.withProgress({
+await vscode.window.withProgress(
+  {
     location: vscode.ProgressLocation.Notification,
-    title: '正在处理...'
-}, async (progress) => {
+    title: "正在处理...",
+  },
+  async (progress) => {
     // 处理逻辑
-});
+  },
+);
 
 // 显示文本文档
 const doc = await vscode.window.showTextDocument(uri);
@@ -217,39 +223,39 @@ const rootPath = vscode.workspace.rootPath;
 const folders = vscode.workspace.workspaceFolders;
 
 // 获取配置
-const config = vscode.workspace.getConfiguration('extensionName');
-const value = config.get('settingName', 'defaultValue');
+const config = vscode.workspace.getConfiguration("extensionName");
+const value = config.get("settingName", "defaultValue");
 
 // 监听配置变化
-vscode.workspace.onDidChangeConfiguration(e => {
-    if (e.affectsConfiguration('extensionName')) {
-        // 配置变化处理
-    }
+vscode.workspace.onDidChangeConfiguration((e) => {
+  if (e.affectsConfiguration("extensionName")) {
+    // 配置变化处理
+  }
 });
 
 // 监听文件变化
-vscode.workspace.onDidChangeFiles(e => {
-    e.changes.forEach(change => {
-        console.log('文件变化:', change.uri.fsPath);
-    });
+vscode.workspace.onDidChangeFiles((e) => {
+  e.changes.forEach((change) => {
+    console.log("文件变化:", change.uri.fsPath);
+  });
 });
 
 // 创建文件
-const uri = vscode.Uri.file('/path/to/file.txt');
-await vscode.workspace.fs.writeFile(uri, Buffer.from('内容'));
+const uri = vscode.Uri.file("/path/to/file.txt");
+await vscode.workspace.fs.writeFile(uri, Buffer.from("内容"));
 
 // 读取文件
 const content = await vscode.workspace.fs.readFile(uri);
 
 // 查找文件
-const files = await vscode.workspace.findFiles('**/*.ts', '**/node_modules/**');
+const files = await vscode.workspace.findFiles("**/*.ts", "**/node_modules/**");
 ```
 
 **vscode.env - 环境信息**
 
 ```typescript
 // 获取剪贴板
-await vscode.env.clipboard.writeText('要复制的文本');
+await vscode.env.clipboard.writeText("要复制的文本");
 const text = await vscode.env.clipboard.readText();
 
 // 获取应用名称
@@ -262,20 +268,20 @@ const language = vscode.env.language;
 const extensionPath = vscode.env.appRoot;
 
 // 打开外部链接
-await vscode.env.openExternal(vscode.Uri.parse('https://example.com'));
+await vscode.env.openExternal(vscode.Uri.parse("https://example.com"));
 ```
 
 **vscode.Uri - 统一资源标识符**
 
 ```typescript
 // 创建文件 URI
-const fileUri = vscode.Uri.file('/path/to/file.txt');
+const fileUri = vscode.Uri.file("/path/to/file.txt");
 
 // 解析 URI
-const uri = vscode.Uri.parse('file:///path/to/file.txt');
+const uri = vscode.Uri.parse("file:///path/to/file.txt");
 
 // URI 转换
-const fsPath = uri.fsPath;     // 转换为文件系统路径
+const fsPath = uri.fsPath; // 转换为文件系统路径
 const toString = uri.toString(); // 转换为字符串
 ```
 
@@ -284,8 +290,8 @@ const toString = uri.toString(); // 转换为字符串
 ```typescript
 // 创建范围
 const range = new vscode.Range(
-    new vscode.Position(0, 0),  // 起始行、列
-    new vscode.Position(10, 20) // 结束行、列
+  new vscode.Position(0, 0), // 起始行、列
+  new vscode.Position(10, 20), // 结束行、列
 );
 
 // 文本编辑器范围操作
@@ -298,13 +304,13 @@ const selectedText = editor.document.getText(selection);
 
 ```typescript
 // 创建诊断集合
-const diagnostics = vscode.languages.createDiagnosticCollection('myExtension');
+const diagnostics = vscode.languages.createDiagnosticCollection("myExtension");
 
 // 添加诊断
 const diagnostic = new vscode.Diagnostic(
-    range,
-    '错误信息',
-    vscode.DiagnosticSeverity.Error
+  range,
+  "错误信息",
+  vscode.DiagnosticSeverity.Error,
 );
 
 diagnostics.set(uri, [diagnostic]);
@@ -315,12 +321,12 @@ diagnostics.set(uri, [diagnostic]);
 ```typescript
 // 创建状态栏项
 const statusBarItem = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Right,
-    100
+  vscode.StatusBarAlignment.Right,
+  100,
 );
 
-statusBarItem.text = '$(beaker) My Extension';
-statusBarItem.command = 'extension.commandName';
+statusBarItem.text = "$(beaker) My Extension";
+statusBarItem.command = "extension.commandName";
 statusBarItem.show();
 ```
 
@@ -329,18 +335,18 @@ statusBarItem.show();
 ```typescript
 // 创建树形数据提供者
 class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
-    getTreeItem(element: TreeItem): vscode.TreeItem {
-        return element;
-    }
+  getTreeItem(element: TreeItem): vscode.TreeItem {
+    return element;
+  }
 
-    getChildren(element?: TreeItem): Thenable<TreeItem[]> {
-        // 返回子节点
-    }
+  getChildren(element?: TreeItem): Thenable<TreeItem[]> {
+    // 返回子节点
+  }
 }
 
 // 创建树形视图
-const treeView = vscode.window.createTreeView('extension.treeView', {
-    treeDataProvider: new TreeDataProvider()
+const treeView = vscode.window.createTreeView("extension.treeView", {
+  treeDataProvider: new TreeDataProvider(),
 });
 ```
 
@@ -406,18 +412,19 @@ svg-icon-manager/
 
 ```json
 {
-  "name": "svg-icon-manager",              // 插件唯一标识
-  "displayName": "SVG Icon Manager",       // 显示名称
-  "description": "...",                    // 插件描述
-  "version": "1.0.0",                      // 版本号
-  "publisher": "miffy-w",                  // 发布者
+  "name": "svg-icon-manager", // 插件唯一标识
+  "displayName": "SVG Icon Manager", // 显示名称
+  "description": "...", // 插件描述
+  "version": "1.0.0", // 版本号
+  "publisher": "svg-icon-manager", // 发布者
   "engines": {
-    "vscode": "^1.74.0"                    // 最低 VSCode 版本
+    "vscode": "^1.74.0" // 最低 VSCode 版本
   },
   "categories": ["Other", "Visualization"], // 分类
   "activationEvents": ["onCommand:svgIconManager.show"], // 激活事件
-  "main": "./out/extension.js",            // 入口文件
-  "contributes": {                         // 贡献点
+  "main": "./out/extension.js", // 入口文件
+  "contributes": {
+    // 贡献点
     "commands": [
       {
         "command": "svgIconManager.show",
@@ -437,7 +444,14 @@ svg-icon-manager/
       "properties": {
         "svgIconManager.ignorePatterns": {
           "type": "array",
-          "default": ["node_modules", ".git", "out", "dist", "build", "coverage"],
+          "default": [
+            "node_modules",
+            ".git",
+            "out",
+            "dist",
+            "build",
+            "coverage"
+          ],
           "description": "Directory patterns to ignore when scanning for SVG files"
         },
         "svgIconManager.iconSize": {
@@ -487,9 +501,7 @@ svg-icon-manager/
       "name": "Run Extension",
       "type": "extensionHost",
       "request": "launch",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}"
-      ]
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"]
     }
   ]
 }
@@ -507,42 +519,39 @@ svg-icon-manager/
 
 ```typescript
 export function activate(context: vscode.ExtensionContext) {
-    console.log('SVG Icon Manager is now active!');
-    
-    // 获取工作区根路径
-    const workspaceRoot = vscode.workspace.rootPath;
-    
-    // 创建图标扫描器
-    const scanner = new IconScanner(workspaceRoot);
-    
-    // 创建图标面板管理器
-    const iconPanel = new IconPanel(context, workspaceRoot, scanner);
-    
-    // 注册显示面板命令
-    const showPanelCommand = vscode.commands.registerCommand(
-        'svgIconManager.show',
-        () => {
-            iconPanel.show();
-        }
-    );
-    
-    // 注册刷新命令
-    const refreshCommand = vscode.commands.registerCommand(
-        'svgIconManager.refresh',
-        () => {
-            iconPanel.refresh();
-        }
-    );
-    
-    // 将命令添加到订阅列表，确保在插件停用时清理
-    context.subscriptions.push(
-        showPanelCommand,
-        refreshCommand
-    );
+  console.log("SVG Icon Manager is now active!");
+
+  // 获取工作区根路径
+  const workspaceRoot = vscode.workspace.rootPath;
+
+  // 创建图标扫描器
+  const scanner = new IconScanner(workspaceRoot);
+
+  // 创建图标面板管理器
+  const iconPanel = new IconPanel(context, workspaceRoot, scanner);
+
+  // 注册显示面板命令
+  const showPanelCommand = vscode.commands.registerCommand(
+    "svgIconManager.show",
+    () => {
+      iconPanel.show();
+    },
+  );
+
+  // 注册刷新命令
+  const refreshCommand = vscode.commands.registerCommand(
+    "svgIconManager.refresh",
+    () => {
+      iconPanel.refresh();
+    },
+  );
+
+  // 将命令添加到订阅列表，确保在插件停用时清理
+  context.subscriptions.push(showPanelCommand, refreshCommand);
 }
 
 export function deactivate() {
-    // 插件停用时的清理工作
+  // 插件停用时的清理工作
 }
 ```
 
@@ -562,6 +571,7 @@ export function deactivate() {
 3. **接口定义**: 使用 TypeScript 接口明确定义数据结构
 
 这种设计的优点：
+
 - **职责单一**: 每个类只负责一个方面的功能
 - **易于测试**: 可以独立测试每个模块
 - **易于维护**: 修改某个功能不会影响其他部分
@@ -624,6 +634,7 @@ graph TD
 #### 关键实现细节
 
 **1. 递归扫描算法**
+
 ```typescript
 private async findSvgFiles(
     dir: string,
@@ -636,151 +647,168 @@ private async findSvgFiles(
 ```
 
 **2. SVG 解析策略**
+
 - 优先解析 `width` 和 `height` 属性
 - 如果不存在，则使用 `viewBox` 计算尺寸
 - 使用正则表达式匹配属性值
 
 **3. 配置管理**
+
 - 从 VSCode 配置中读取忽略模式
 - 支持用户自定义配置
 - 每次扫描前重新加载配置
 
 **4. 错误处理**
+
 - 单个文件解析失败不影响整体扫描
 - 记录错误日志便于调试
 - 返回可用的图标列表
 
 ```typescript
 interface SvgIcon {
-    name: string;              // 图标名称
-    path: string;              // 绝对路径
-    relativePath: string;      // 相对路径
-    size: { width: number; height: number }; // 尺寸
-    content: string;           // SVG 内容
+  name: string; // 图标名称
+  path: string; // 绝对路径
+  relativePath: string; // 相对路径
+  size: { width: number; height: number }; // 尺寸
+  content: string; // SVG 内容
 }
 
 class IconScanner {
-    private icons: SvgIcon[] = [];
-    private ignorePatterns: string[] = [];
+  private icons: SvgIcon[] = [];
+  private ignorePatterns: string[] = [];
 
-    constructor(private workspaceRoot: string | undefined) {
-        this.loadConfig();
+  constructor(private workspaceRoot: string | undefined) {
+    this.loadConfig();
+  }
+
+  private loadConfig() {
+    // 加载配置
+    const config = vscode.workspace.getConfiguration("svgIconManager");
+    this.ignorePatterns = config.get<string[]>("ignorePatterns", [
+      "node_modules",
+      ".git",
+      "out",
+      "dist",
+      "build",
+      "coverage",
+    ]);
+  }
+
+  async scan(): Promise<SvgIcon[]> {
+    this.icons = [];
+    this.loadConfig();
+
+    if (!this.workspaceRoot) {
+      return this.icons;
     }
 
-    private loadConfig() {
-        // 加载配置
-        const config = vscode.workspace.getConfiguration('svgIconManager');
-        this.ignorePatterns = config.get<string[]>(
-            'ignorePatterns',
-            ['node_modules', '.git', 'out', 'dist', 'build', 'coverage']
-        );
+    // 查找所有 SVG 文件
+    const svgFiles = await this.findSvgFiles(this.workspaceRoot);
+
+    // 解析每个 SVG 文件
+    for (const filePath of svgFiles) {
+      try {
+        const icon = await this.parseSvgFile(filePath);
+        if (icon) {
+          this.icons.push(icon);
+        }
+      } catch (error) {
+        console.error(`Error parsing SVG file ${filePath}:`, error);
+      }
     }
 
-    async scan(): Promise<SvgIcon[]> {
-        this.icons = [];
-        this.loadConfig();
-        
-        if (!this.workspaceRoot) {
-            return this.icons;
-        }
+    // 按名称排序
+    this.icons.sort((a, b) => a.name.localeCompare(b.name));
+    return this.icons;
+  }
 
-        // 查找所有 SVG 文件
-        const svgFiles = await this.findSvgFiles(this.workspaceRoot);
-        
-        // 解析每个 SVG 文件
-        for (const filePath of svgFiles) {
-            try {
-                const icon = await this.parseSvgFile(filePath);
-                if (icon) {
-                    this.icons.push(icon);
-                }
-            } catch (error) {
-                console.error(`Error parsing SVG file ${filePath}:`, error);
-            }
-        }
-        
-        // 按名称排序
-        this.icons.sort((a, b) => a.name.localeCompare(b.name));
-        return this.icons;
+  private async findSvgFiles(
+    dir: string,
+    depth: number = 0,
+    maxDepth: number = 10,
+  ): Promise<string[]> {
+    const files: string[] = [];
+
+    // 防止无限递归
+    if (depth > maxDepth) {
+      return files;
     }
 
-    private async findSvgFiles(
-        dir: string,
-        depth: number = 0,
-        maxDepth: number = 10
-    ): Promise<string[]> {
-        const files: string[] = [];
-        
-        // 防止无限递归
-        if (depth > maxDepth) {
-            return files;
+    try {
+      // 读取目录内容
+      const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+
+        // 跳过忽略的目录
+        if (this.ignorePatterns.includes(entry.name)) {
+          continue;
         }
-        
-        try {
-            // 读取目录内容
-            const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-            
-            for (const entry of entries) {
-                const fullPath = path.join(dir, entry.name);
-                
-                // 跳过忽略的目录
-                if (this.ignorePatterns.includes(entry.name)) {
-                    continue;
-                }
-                
-                if (entry.isDirectory()) {
-                    // 递归扫描子目录
-                    const subFiles = await this.findSvgFiles(fullPath, depth + 1, maxDepth);
-                    files.push(...subFiles);
-                } else if (entry.name.toLowerCase().endsWith('.svg')) {
-                    // 添加 SVG 文件
-                    files.push(fullPath);
-                }
-            }
-        } catch (error) {
-            console.error(`Error reading directory ${dir}:`, error);
+
+        if (entry.isDirectory()) {
+          // 递归扫描子目录
+          const subFiles = await this.findSvgFiles(
+            fullPath,
+            depth + 1,
+            maxDepth,
+          );
+          files.push(...subFiles);
+        } else if (entry.name.toLowerCase().endsWith(".svg")) {
+          // 添加 SVG 文件
+          files.push(fullPath);
         }
-        
-        return files;
+      }
+    } catch (error) {
+      console.error(`Error reading directory ${dir}:`, error);
     }
 
-    private async parseSvgFile(filePath: string): Promise<SvgIcon | null> {
-        try {
-            // 读取文件内容
-            const content = await fs.promises.readFile(filePath, 'utf-8');
-            const relativePath = path.relative(this.workspaceRoot!, filePath);
-            const name = path.basename(filePath, '.svg');
-            
-            // 解析 SVG 尺寸
-            const widthMatch = content.match(/width=["'](\d+(?:\.\d+)?)(?:px|)?["']/i);
-            const heightMatch = content.match(/height=["'](\d+(?:\.\d+)?)(?:px|)?["']/i);
-            const viewBoxMatch = content.match(/viewBox=["'](\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)["']/i);
-            
-            let width = 0;
-            let height = 0;
-            
-            // 优先使用 width/height 属性
-            if (widthMatch && heightMatch) {
-                width = parseFloat(widthMatch[1]);
-                height = parseFloat(heightMatch[1]);
-            } else if (viewBoxMatch) {
-                // 使用 viewBox 计算
-                width = parseFloat(viewBoxMatch[3]);
-                height = parseFloat(viewBoxMatch[4]);
-            }
-            
-            return {
-                name,
-                path: filePath,
-                relativePath: relativePath.replace(/\\/g, '/'),
-                size: { width, height },
-                content
-            };
-        } catch (error) {
-            console.error(`Error parsing SVG file ${filePath}:`, error);
-            return null;
-        }
+    return files;
+  }
+
+  private async parseSvgFile(filePath: string): Promise<SvgIcon | null> {
+    try {
+      // 读取文件内容
+      const content = await fs.promises.readFile(filePath, "utf-8");
+      const relativePath = path.relative(this.workspaceRoot!, filePath);
+      const name = path.basename(filePath, ".svg");
+
+      // 解析 SVG 尺寸
+      const widthMatch = content.match(
+        /width=["'](\d+(?:\.\d+)?)(?:px|)?["']/i,
+      );
+      const heightMatch = content.match(
+        /height=["'](\d+(?:\.\d+)?)(?:px|)?["']/i,
+      );
+      const viewBoxMatch = content.match(
+        /viewBox=["'](\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)["']/i,
+      );
+
+      let width = 0;
+      let height = 0;
+
+      // 优先使用 width/height 属性
+      if (widthMatch && heightMatch) {
+        width = parseFloat(widthMatch[1]);
+        height = parseFloat(heightMatch[1]);
+      } else if (viewBoxMatch) {
+        // 使用 viewBox 计算
+        width = parseFloat(viewBoxMatch[3]);
+        height = parseFloat(viewBoxMatch[4]);
+      }
+
+      return {
+        name,
+        path: filePath,
+        relativePath: relativePath.replace(/\\/g, "/"),
+        size: { width, height },
+        content,
+      };
+    } catch (error) {
+      console.error(`Error parsing SVG file ${filePath}:`, error);
+      return null;
     }
+  }
 }
 ```
 
@@ -800,21 +828,21 @@ class IconScanner {
 
 ```typescript
 class IconPanel {
-    private panel: vscode.WebviewPanel | undefined;
-    private icons: SvgIcon[] = [];
-    private filteredIcons: SvgIcon[] = [];
-    private directories: string[] = [];
-    private selectedDirectory: string = '';
-    private searchQuery: string = '';
-    private scanner: IconScanner;
+  private panel: vscode.WebviewPanel | undefined;
+  private icons: SvgIcon[] = [];
+  private filteredIcons: SvgIcon[] = [];
+  private directories: string[] = [];
+  private selectedDirectory: string = "";
+  private searchQuery: string = "";
+  private scanner: IconScanner;
 
-    constructor(
-        private context: vscode.ExtensionContext,
-        private workspaceRoot: string | undefined,
-        scanner: IconScanner
-    ) {
-        this.scanner = scanner;
-    }
+  constructor(
+    private context: vscode.ExtensionContext,
+    private workspaceRoot: string | undefined,
+    scanner: IconScanner,
+  ) {
+    this.scanner = scanner;
+  }
 }
 ```
 
@@ -935,6 +963,7 @@ sequenceDiagram
 #### Webview 通信机制详解
 
 **1. 消息格式**
+
 ```typescript
 // 扩展 → Webview
 {
@@ -952,49 +981,53 @@ sequenceDiagram
 ```
 
 **2. 消息发送（扩展 → Webview）**
+
 ```typescript
 this.panel.webview.postMessage({
-    command: 'updateIcons',
-    icons: cardsHtml,
-    count: this.filteredIcons.length,
-    total: this.icons.length
+  command: "updateIcons",
+  icons: cardsHtml,
+  count: this.filteredIcons.length,
+  total: this.icons.length,
 });
 ```
 
 **3. 消息接收（Webview → 扩展）**
+
 ```typescript
 this.panel.webview.onDidReceiveMessage(
-    async (message) => {
-        switch (message.command) {
-            case 'search':
-                this.searchQuery = message.query;
-                this.applyFilters();
-                break;
-            // ... 其他命令
-        }
-    },
-    undefined,
-    this.context.subscriptions
+  async (message) => {
+    switch (message.command) {
+      case "search":
+        this.searchQuery = message.query;
+        this.applyFilters();
+        break;
+      // ... 其他命令
+    }
+  },
+  undefined,
+  this.context.subscriptions,
 );
 ```
 
 **4. 消息发送（Webview → 扩展）**
+
 ```javascript
 vscode.postMessage({
-    command: 'search',
-    query: e.target.value
+  command: "search",
+  query: e.target.value,
 });
 ```
 
 **5. 消息接收（扩展 → Webview）**
+
 ```javascript
-window.addEventListener('message', event => {
-    const message = event.data;
-    switch (message.command) {
-        case 'updateIcons':
-            document.getElementById('iconsGrid').innerHTML = message.icons;
-            break;
-    }
+window.addEventListener("message", (event) => {
+  const message = event.data;
+  switch (message.command) {
+    case "updateIcons":
+      document.getElementById("iconsGrid").innerHTML = message.icons;
+      break;
+  }
 });
 ```
 
@@ -1013,37 +1046,40 @@ window.addEventListener('message', event => {
    - 使用 `updateIcons` 命令而不是重新加载整个页面
 
 2. **防抖处理**
+
    ```javascript
    let searchTimeout;
-   document.getElementById('searchInput').addEventListener('input', (e) => {
-       clearTimeout(searchTimeout);
-       searchTimeout = setTimeout(() => {
-           vscode.postMessage({
-               command: 'search',
-               query: e.target.value
-           });
-       }, 300); // 300ms 防抖
+   document.getElementById("searchInput").addEventListener("input", (e) => {
+     clearTimeout(searchTimeout);
+     searchTimeout = setTimeout(() => {
+       vscode.postMessage({
+         command: "search",
+         query: e.target.value,
+       });
+     }, 300); // 300ms 防抖
    });
    ```
 
 3. **状态保持**
    ```typescript
    {
-       retainContextWhenHidden: true  // 隐藏时保持状态
+     retainContextWhenHidden: true; // 隐藏时保持状态
    }
    ```
 
 **安全考虑**
 
 1. **Content Security Policy (CSP)**
+
    ```html
-   <meta http-equiv="Content-Security-Policy" content="default-src 'none';">
+   <meta http-equiv="Content-Security-Policy" content="default-src 'none';" />
    ```
 
 2. **本地资源访问**
+
    ```typescript
    {
-       localResourceRoots: [vscode.Uri.file(context.extensionPath)]
+     localResourceRoots: [vscode.Uri.file(context.extensionPath)];
    }
    ```
 
@@ -1107,33 +1143,33 @@ private getWebviewContent(): string {
 
 ```css
 body {
-    font-family: var(--vscode-font-family);
-    color: var(--vscode-foreground);
-    background-color: var(--vscode-editor-background);
-    padding: 20px;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
+  font-family: var(--vscode-font-family);
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-editor-background);
+  padding: 20px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .icon-card {
-    background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 8px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
+  background-color: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .icon-card:hover {
-    border-color: var(--vscode-focusBorder);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--vscode-focusBorder);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 ```
 
@@ -1146,69 +1182,69 @@ body {
 const vscode = acquireVsCodeApi();
 
 // 监听来自扩展的消息
-window.addEventListener('message', event => {
-    const message = event.data;
-    switch (message.command) {
-        case 'updateIcons':
-            document.getElementById('iconsGrid').innerHTML = message.icons;
-            break;
-    }
+window.addEventListener("message", (event) => {
+  const message = event.data;
+  switch (message.command) {
+    case "updateIcons":
+      document.getElementById("iconsGrid").innerHTML = message.icons;
+      break;
+  }
 });
 
 // 搜索输入事件
-document.getElementById('searchInput').addEventListener('input', (e) => {
-    vscode.postMessage({
-        command: 'search',
-        query: e.target.value
-    });
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  vscode.postMessage({
+    command: "search",
+    query: e.target.value,
+  });
 });
 
 // 目录过滤事件
-document.getElementById('pathFilter').addEventListener('change', (e) => {
-    vscode.postMessage({
-        command: 'filterByPath',
-        path: e.target.value
-    });
+document.getElementById("pathFilter").addEventListener("change", (e) => {
+  vscode.postMessage({
+    command: "filterByPath",
+    path: e.target.value,
+  });
 });
 
 // 刷新按钮事件
-document.getElementById('refreshBtn').addEventListener('click', () => {
-    vscode.postMessage({ command: 'refresh' });
+document.getElementById("refreshBtn").addEventListener("click", () => {
+  vscode.postMessage({ command: "refresh" });
 });
 
 // 图标卡片点击事件
-document.getElementById('iconsGrid').addEventListener('click', (e) => {
-    const card = e.target.closest('.icon-card');
-    const actionBtn = e.target.closest('.action-btn');
-    
-    if (actionBtn) {
-        e.stopPropagation();
-        const action = actionBtn.dataset.action;
-        const card = actionBtn.closest('.icon-card');
-        
-        if (action === 'copyPath') {
-            vscode.postMessage({
-                command: 'copyPath',
-                path: card.dataset.path
-            });
-        } else if (action === 'copyImport') {
-            vscode.postMessage({
-                command: 'copyImport',
-                path: card.dataset.path,
-                name: card.dataset.name
-            });
-        } else if (action === 'openFile') {
-            vscode.postMessage({
-                command: 'openFile',
-                path: card.dataset.path
-            });
-        }
-    } else if (card) {
-        vscode.postMessage({
-            command: 'openFile',
-            path: card.dataset.path
-        });
+document.getElementById("iconsGrid").addEventListener("click", (e) => {
+  const card = e.target.closest(".icon-card");
+  const actionBtn = e.target.closest(".action-btn");
+
+  if (actionBtn) {
+    e.stopPropagation();
+    const action = actionBtn.dataset.action;
+    const card = actionBtn.closest(".icon-card");
+
+    if (action === "copyPath") {
+      vscode.postMessage({
+        command: "copyPath",
+        path: card.dataset.path,
+      });
+    } else if (action === "copyImport") {
+      vscode.postMessage({
+        command: "copyImport",
+        path: card.dataset.path,
+        name: card.dataset.name,
+      });
+    } else if (action === "openFile") {
+      vscode.postMessage({
+        command: "openFile",
+        path: card.dataset.path,
+      });
     }
+  } else if (card) {
+    vscode.postMessage({
+      command: "openFile",
+      path: card.dataset.path,
+    });
+  }
 });
 ```
 
@@ -1219,16 +1255,16 @@ document.getElementById('iconsGrid').addEventListener('click', (e) => {
 ```typescript
 // 扩展 → Webview
 this.panel.webview.postMessage({
-    command: 'updateIcons',
-    icons: cardsHtml,
-    count: this.filteredIcons.length,
-    total: this.icons.length
+  command: "updateIcons",
+  icons: cardsHtml,
+  count: this.filteredIcons.length,
+  total: this.icons.length,
 });
 
 // Webview → 扩展
 vscode.postMessage({
-    command: 'search',
-    query: e.target.value
+  command: "search",
+  query: e.target.value,
 });
 ```
 
@@ -1286,11 +1322,12 @@ private async openFile(path: string) {
 #### 控制台日志
 
 ```typescript
-console.log('SVG Icon Manager is now active!');
-console.error('Error:', error);
+console.log("SVG Icon Manager is now active!");
+console.error("Error:", error);
 ```
 
 日志会显示在：
+
 - **Extension Host** 终端（在调试窗口中）
 - **Output** 面板（选择 "Extension Host" 频道）
 
@@ -1319,7 +1356,7 @@ console.error('Error:', error);
 #### 方法二：添加 console.log
 
 ```javascript
-console.log('Debug info:', data);
+console.log("Debug info:", data);
 ```
 
 日志会显示在 Webview Developer Tools 的控制台中。
@@ -1369,6 +1406,7 @@ code --install-extension svg-icon-manager-1.0.0.vsix
 ```
 
 或在 VSCode 中：
+
 1. 按 `Ctrl+Shift+P`
 2. 输入 "Extensions: Install from VSIX..."
 3. 选择 `.vsix` 文件
@@ -1395,6 +1433,7 @@ vsce publish
 #### 版本管理
 
 发布前需要：
+
 1. 更新 `package.json` 中的版本号
 2. 更新 `CHANGELOG.md`
 3. 运行测试确保功能正常
@@ -1408,52 +1447,55 @@ vsce publish
 #### 1. API 调用最佳实践
 
 **异步操作处理**
+
 ```typescript
 // ✅ 好的做法：使用 async/await
 async function scanFiles() {
-    try {
-        const files = await vscode.workspace.findFiles('**/*.ts');
-        // 处理文件
-    } catch (error) {
-        vscode.window.showErrorMessage('扫描失败: ' + error);
-    }
+  try {
+    const files = await vscode.workspace.findFiles("**/*.ts");
+    // 处理文件
+  } catch (error) {
+    vscode.window.showErrorMessage("扫描失败: " + error);
+  }
 }
 
 // ❌ 不好的做法：忽略错误
 function scanFiles() {
-    vscode.workspace.findFiles('**/*.ts').then(files => {
-        // 处理文件
-    });
+  vscode.workspace.findFiles("**/*.ts").then((files) => {
+    // 处理文件
+  });
 }
 ```
 
 **资源清理**
+
 ```typescript
 // ✅ 好的做法：正确清理资源
 export function activate(context: vscode.ExtensionContext) {
-    const disposable = vscode.commands.registerCommand('ext.hello', () => {
-        vscode.window.showInformationMessage('Hello!');
-    });
-    
-    context.subscriptions.push(disposable);
+  const disposable = vscode.commands.registerCommand("ext.hello", () => {
+    vscode.window.showInformationMessage("Hello!");
+  });
+
+  context.subscriptions.push(disposable);
 }
 
 // ❌ 不好的做法：没有清理
 export function activate(context: vscode.ExtensionContext) {
-    vscode.commands.registerCommand('ext.hello', () => {
-        vscode.window.showInformationMessage('Hello!');
-    });
+  vscode.commands.registerCommand("ext.hello", () => {
+    vscode.window.showInformationMessage("Hello!");
+  });
 }
 ```
 
 **配置管理**
+
 ```typescript
 // ✅ 好的做法：监听配置变化
-vscode.workspace.onDidChangeConfiguration(e => {
-    if (e.affectsConfiguration('myExtension')) {
-        // 重新加载配置
-        updateConfiguration();
-    }
+vscode.workspace.onDidChangeConfiguration((e) => {
+  if (e.affectsConfiguration("myExtension")) {
+    // 重新加载配置
+    updateConfiguration();
+  }
 });
 
 // ❌ 不好的做法：配置变化后不更新
@@ -1463,54 +1505,60 @@ vscode.workspace.onDidChangeConfiguration(e => {
 #### 2. 性能优化技巧
 
 **减少 API 调用**
+
 ```typescript
 // ✅ 好的做法：缓存结果
 let cachedFiles: vscode.Uri[] | null = null;
 
 async function getFiles() {
-    if (cachedFiles) {
-        return cachedFiles;
-    }
-    cachedFiles = await vscode.workspace.findFiles('**/*.ts');
+  if (cachedFiles) {
     return cachedFiles;
+  }
+  cachedFiles = await vscode.workspace.findFiles("**/*.ts");
+  return cachedFiles;
 }
 
 // ❌ 不好的做法：每次都调用 API
 async function getFiles() {
-    return await vscode.workspace.findFiles('**/*.ts');
+  return await vscode.workspace.findFiles("**/*.ts");
 }
 ```
 
 **使用 Progress API**
+
 ```typescript
 // ✅ 好的做法：显示进度
-await vscode.window.withProgress({
+await vscode.window.withProgress(
+  {
     location: vscode.ProgressLocation.Notification,
-    title: '处理中...',
-    cancellable: true
-}, async (progress, token) => {
+    title: "处理中...",
+    cancellable: true,
+  },
+  async (progress, token) => {
     for (let i = 0; i < 100; i++) {
-        if (token.isCancellationRequested) {
-            break;
-        }
-        progress.report({ increment: 1, message: `${i}%` });
-        await doWork();
+      if (token.isCancellationRequested) {
+        break;
+      }
+      progress.report({ increment: 1, message: `${i}%` });
+      await doWork();
     }
-});
+  },
+);
 ```
 
 **批量操作**
+
 ```typescript
 // ✅ 好的做法：批量创建编辑
 const edit = new vscode.WorkspaceEdit();
-files.forEach(file => {
-    edit.createFile(file.uri, { contents: file.content });
+files.forEach((file) => {
+  edit.createFile(file.uri, { contents: file.content });
 });
 await vscode.workspace.applyEdit(edit);
 
 // ❌ 不好的做法：逐个创建文件
 for (const file of files) {
-    await vscode.workspace.fs.writeFile(file.uri, file.content);
+  await vscode.workspace.fs.writeFile(file.uri, file.content);
 }
 ```
 
@@ -1521,13 +1569,13 @@ for (const file of files) {
 ```typescript
 // 检查 enableScripts 是否启用
 const panel = vscode.window.createWebviewPanel(
-    'myWebview',
-    'My Webview',
-    vscode.ViewColumn.One,
-    {
-        enableScripts: true,  // ✅ 必须启用
-        retainContextWhenHidden: true
-    }
+  "myWebview",
+  "My Webview",
+  vscode.ViewColumn.One,
+  {
+    enableScripts: true, // ✅ 必须启用
+    retainContextWhenHidden: true,
+  },
 );
 ```
 
@@ -1535,12 +1583,12 @@ const panel = vscode.window.createWebviewPanel(
 
 ```javascript
 // Webview 端
-const vscode = acquireVsCodeApi();  // ✅ 必须调用此函数
+const vscode = acquireVsCodeApi(); // ✅ 必须调用此函数
 
 // 检查消息格式
 vscode.postMessage({
-    command: 'myCommand',  // ✅ 必须有 command 字段
-    data: 'myData'
+  command: "myCommand", // ✅ 必须有 command 字段
+  data: "myData",
 });
 ```
 
@@ -1548,8 +1596,8 @@ vscode.postMessage({
 
 ```typescript
 // 检查配置名称是否正确
-const config = vscode.workspace.getConfiguration('myExtension');
-const value = config.get('settingName', 'defaultValue');  // ✅ 使用默认值
+const config = vscode.workspace.getConfiguration("myExtension");
+const value = config.get("settingName", "defaultValue"); // ✅ 使用默认值
 
 // 检查配置是否在 package.json 中定义
 ```
@@ -1558,11 +1606,11 @@ const value = config.get('settingName', 'defaultValue');  // ✅ 使用默认值
 
 ```typescript
 // ✅ 使用 vscode.Uri 处理路径
-const uri = vscode.Uri.file('/path/to/file.txt');
-const fsPath = uri.fsPath;  // 转换为文件系统路径
+const uri = vscode.Uri.file("/path/to/file.txt");
+const fsPath = uri.fsPath; // 转换为文件系统路径
 
 // ❌ 直接拼接路径字符串
-const path = '/path/to/' + filename;  // 可能在不同系统上有问题
+const path = "/path/to/" + filename; // 可能在不同系统上有问题
 ```
 
 **问题 5: 插件激活失败**
@@ -1586,22 +1634,25 @@ export function activate(context: vscode.ExtensionContext) {
 #### 4. 调试技巧
 
 **使用日志**
+
 ```typescript
 // ✅ 使用不同级别的日志
-console.log('Info message');
-console.warn('Warning message');
-console.error('Error message');
+console.log("Info message");
+console.warn("Warning message");
+console.error("Error message");
 
 // 查看 Output 面板中的 Extension Host 频道
 ```
 
 **设置断点**
+
 ```typescript
 // 在代码行号左侧点击设置断点
 // 启动调试后，程序会在断点处暂停
 ```
 
 **使用 Debug Console**
+
 ```typescript
 // 在断点处，可以在 Debug Console 中执行代码
 // 例如：查看变量值
@@ -1611,43 +1662,48 @@ console.error('Error message');
 #### 5. 类型定义技巧
 
 **使用接口**
+
 ```typescript
 // ✅ 定义清晰的接口
 interface MySettings {
-    maxFiles: number;
-    ignorePatterns: string[];
-    outputFormat: 'json' | 'csv' | 'xml';
+  maxFiles: number;
+  ignorePatterns: string[];
+  outputFormat: "json" | "csv" | "xml";
 }
 
 interface ScanResult {
-    files: vscode.Uri[];
-    errors: Error[];
-    duration: number;
+  files: vscode.Uri[];
+  errors: Error[];
+  duration: number;
 }
 ```
 
 **使用枚举**
+
 ```typescript
 // ✅ 使用枚举代替字符串字面量
 enum FileType {
-    TypeScript = 'typescript',
-    JavaScript = 'javascript',
-    JSON = 'json'
+  TypeScript = "typescript",
+  JavaScript = "javascript",
+  JSON = "json",
 }
 
-const type = FileType.TypeScript;  // 类型安全
+const type = FileType.TypeScript; // 类型安全
 ```
 
 **使用类型守卫**
+
 ```typescript
 // ✅ 使用类型守卫
-function isTextEditor(editor: vscode.TextEditor | undefined): editor is vscode.TextEditor {
-    return editor !== undefined && editor.document !== undefined;
+function isTextEditor(
+  editor: vscode.TextEditor | undefined,
+): editor is vscode.TextEditor {
+  return editor !== undefined && editor.document !== undefined;
 }
 
 if (isTextEditor(vscode.window.activeTextEditor)) {
-    // editor 现在是 TextEditor 类型
-    const text = editor.document.getText();
+  // editor 现在是 TextEditor 类型
+  const text = editor.document.getText();
 }
 ```
 
@@ -1657,11 +1713,11 @@ if (isTextEditor(vscode.window.activeTextEditor)) {
 
 ```typescript
 class IconScanner {
-    // 相关功能封装在一个类中
+  // 相关功能封装在一个类中
 }
 
 class IconPanel {
-    // Webview 相关功能封装
+  // Webview 相关功能封装
 }
 ```
 
@@ -1669,11 +1725,11 @@ class IconPanel {
 
 ```typescript
 interface SvgIcon {
-    name: string;
-    path: string;
-    relativePath: string;
-    size: { width: number; height: number };
-    content: string;
+  name: string;
+  path: string;
+  relativePath: string;
+  size: { width: number; height: number };
+  content: string;
 }
 ```
 
@@ -1683,12 +1739,12 @@ interface SvgIcon {
 
 ```typescript
 try {
-    const icon = await this.parseSvgFile(filePath);
-    if (icon) {
-        this.icons.push(icon);
-    }
+  const icon = await this.parseSvgFile(filePath);
+  if (icon) {
+    this.icons.push(icon);
+  }
 } catch (error) {
-    console.error(`Error parsing SVG file ${filePath}:`, error);
+  console.error(`Error parsing SVG file ${filePath}:`, error);
 }
 ```
 
@@ -1696,10 +1752,10 @@ try {
 
 ```typescript
 try {
-    await vscode.env.clipboard.writeText(path);
-    vscode.window.showInformationMessage('Path copied to clipboard!');
+  await vscode.env.clipboard.writeText(path);
+  vscode.window.showInformationMessage("Path copied to clipboard!");
 } catch (error) {
-    vscode.window.showErrorMessage('Failed to copy path: ' + error);
+  vscode.window.showErrorMessage("Failed to copy path: " + error);
 }
 ```
 
@@ -1731,14 +1787,14 @@ private async findSvgFiles(
 
 ```javascript
 let searchTimeout;
-document.getElementById('searchInput').addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-        vscode.postMessage({
-            command: 'search',
-            query: e.target.value
-        });
-    }, 300); // 300ms 防抖
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    vscode.postMessage({
+      command: "search",
+      query: e.target.value,
+    });
+  }, 300); // 300ms 防抖
 });
 ```
 
@@ -1792,11 +1848,11 @@ async refresh() {
 #### 监听配置变化
 
 ```typescript
-vscode.workspace.onDidChangeConfiguration(e => {
-    if (e.affectsConfiguration('svgIconManager')) {
-        // 重新加载配置
-        this.loadConfig();
-    }
+vscode.workspace.onDidChangeConfiguration((e) => {
+  if (e.affectsConfiguration("svgIconManager")) {
+    // 重新加载配置
+    this.loadConfig();
+  }
 });
 ```
 
@@ -1806,16 +1862,16 @@ vscode.workspace.onDidChangeConfiguration(e => {
 
 ```css
 body {
-    color: var(--vscode-foreground);
-    background-color: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-editor-background);
 }
 
 .icon-card {
-    border-color: var(--vscode-panel-border);
+  border-color: var(--vscode-panel-border);
 }
 
 .icon-card:hover {
-    border-color: var(--vscode-focusBorder);
+  border-color: var(--vscode-focusBorder);
 }
 ```
 
@@ -1826,7 +1882,7 @@ body {
 ```typescript
 const localize = nls.loadMessageBundle();
 
-const message = localize('iconManager.copied', 'Path copied to clipboard!');
+const message = localize("iconManager.copied", "Path copied to clipboard!");
 ```
 
 ### 8. 文档完善
@@ -1834,6 +1890,7 @@ const message = localize('iconManager.copied', 'Path copied to clipboard!');
 #### README.md
 
 提供清晰的使用说明：
+
 - 功能介绍
 - 安装方法
 - 使用教程
@@ -1843,13 +1900,17 @@ const message = localize('iconManager.copied', 'Path copied to clipboard!');
 #### CHANGELOG.md
 
 记录版本更新内容：
+
 ```markdown
 ## [1.1.0] - 2024-03-18
+
 ### Added
+
 - Dark mode support
 - Export all icons feature
 
 ### Fixed
+
 - Memory leak in scanning
 ```
 
@@ -1860,14 +1921,14 @@ const message = localize('iconManager.copied', 'Path copied to clipboard!');
 使用 Mocha 或 Jest 编写单元测试：
 
 ```typescript
-import * as assert from 'assert';
-import { IconScanner } from '../extension';
+import * as assert from "assert";
+import { IconScanner } from "../extension";
 
-suite('IconScanner Test Suite', () => {
-    test('should parse SVG file correctly', async () => {
-        const scanner = new IconScanner('/test/path');
-        // 测试逻辑
-    });
+suite("IconScanner Test Suite", () => {
+  test("should parse SVG file correctly", async () => {
+    const scanner = new IconScanner("/test/path");
+    // 测试逻辑
+  });
 });
 ```
 
@@ -1887,7 +1948,7 @@ private async openFile(path: string) {
         vscode.window.showErrorMessage('Invalid file path');
         return;
     }
-    
+
     const uri = vscode.Uri.file(path);
     await vscode.window.showTextDocument(uri);
 }
@@ -1947,6 +2008,7 @@ graph TB
 ```
 
 **分层说明**：
+
 - **表现层**: 负责 UI 展示和用户交互
 - **业务逻辑层**: 处理业务逻辑和状态管理
 - **数据访问层**: 负责文件扫描和数据解析
@@ -1957,17 +2019,18 @@ graph TB
 ```typescript
 // 通过构造函数注入依赖
 class IconPanel {
-    constructor(
-        private context: vscode.ExtensionContext,
-        private workspaceRoot: string | undefined,
-        scanner: IconScanner  // 注入 Scanner
-    ) {
-        this.scanner = scanner;
-    }
+  constructor(
+    private context: vscode.ExtensionContext,
+    private workspaceRoot: string | undefined,
+    scanner: IconScanner, // 注入 Scanner
+  ) {
+    this.scanner = scanner;
+  }
 }
 ```
 
 **优点**：
+
 - 降低模块间耦合
 - 便于单元测试
 - 提高代码可维护性
@@ -1975,6 +2038,7 @@ class IconPanel {
 #### 3. 单一职责原则（Single Responsibility Principle）
 
 每个类只负责一个功能：
+
 - `IconScanner`: 只负责扫描和解析 SVG 文件
 - `IconPanel`: 只负责 Webview 面板管理
 - `SvgIcon`: 只负责数据结构定义
@@ -2004,41 +2068,43 @@ graph LR
 
 ```typescript
 class IconPanel {
-    // 状态存储
-    private icons: SvgIcon[] = [];           // 原始图标列表
-    private filteredIcons: SvgIcon[] = [];    // 过滤后的列表
-    private directories: string[] = [];       // 目录列表
-    private selectedDirectory: string = '';  // 选中的目录
-    private searchQuery: string = '';        // 搜索关键词
+  // 状态存储
+  private icons: SvgIcon[] = []; // 原始图标列表
+  private filteredIcons: SvgIcon[] = []; // 过滤后的列表
+  private directories: string[] = []; // 目录列表
+  private selectedDirectory: string = ""; // 选中的目录
+  private searchQuery: string = ""; // 搜索关键词
 
-    // 状态更新方法
-    private applyFilters() {
-        let result = [...this.icons];
+  // 状态更新方法
+  private applyFilters() {
+    let result = [...this.icons];
 
-        // 应用目录过滤
-        if (this.selectedDirectory) {
-            result = result.filter(icon => {
-                const dir = path.dirname(icon.relativePath);
-                return dir === this.selectedDirectory;
-            });
-        }
-
-        // 应用搜索过滤
-        if (this.searchQuery.trim()) {
-            const lowerQuery = this.searchQuery.toLowerCase();
-            result = result.filter(icon =>
-                icon.name.toLowerCase().includes(lowerQuery) ||
-                icon.relativePath.toLowerCase().includes(lowerQuery)
-            );
-        }
-
-        this.filteredIcons = result;
-        this.updateIcons();
+    // 应用目录过滤
+    if (this.selectedDirectory) {
+      result = result.filter((icon) => {
+        const dir = path.dirname(icon.relativePath);
+        return dir === this.selectedDirectory;
+      });
     }
+
+    // 应用搜索过滤
+    if (this.searchQuery.trim()) {
+      const lowerQuery = this.searchQuery.toLowerCase();
+      result = result.filter(
+        (icon) =>
+          icon.name.toLowerCase().includes(lowerQuery) ||
+          icon.relativePath.toLowerCase().includes(lowerQuery),
+      );
+    }
+
+    this.filteredIcons = result;
+    this.updateIcons();
+  }
 }
 ```
 
 **状态管理的优点**：
+
 - 数据流向清晰
 - 易于调试和追踪
 - 支持撤销/重做（可扩展）
@@ -2071,34 +2137,37 @@ graph TD
 ### 性能优化总结
 
 #### 1. 文件扫描优化
+
 ```typescript
 // 使用异步操作，避免阻塞主线程
 const entries = await fs.promises.readdir(dir, { withFileTypes: true });
 
 // 限制扫描深度，防止无限递归
 if (depth > maxDepth) {
-    return files;
+  return files;
 }
 ```
 
 #### 2. UI 渲染优化
+
 ```javascript
 // 使用防抖减少频繁更新
 let searchTimeout;
-document.getElementById('searchInput').addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-        vscode.postMessage({ command: 'search', query: e.target.value });
-    }, 300);
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    vscode.postMessage({ command: "search", query: e.target.value });
+  }, 300);
 });
 ```
 
 #### 3. 内存管理
+
 ```typescript
 // 及时清理不需要的资源
 this.panel.onDidDispose(() => {
-    this.panel = undefined;
-    // 清理其他资源
+  this.panel = undefined;
+  // 清理其他资源
 });
 ```
 
@@ -2132,17 +2201,26 @@ graph TB
 ```
 
 **扩展示例**：
+
 ```typescript
 // 扩展 1：导出功能
 class IconExporter {
-    exportToPNG(icons: SvgIcon[]) { /* ... */ }
-    exportToSVG(icons: SvgIcon[]) { /* ... */ }
+  exportToPNG(icons: SvgIcon[]) {
+    /* ... */
+  }
+  exportToSVG(icons: SvgIcon[]) {
+    /* ... */
+  }
 }
 
 // 扩展 2：批量操作
 class BatchOperation {
-    async renameIcons(icons: SvgIcon[], pattern: string) { /* ... */ }
-    async resizeIcons(icons: SvgIcon[], size: number) { /* ... */ }
+  async renameIcons(icons: SvgIcon[], pattern: string) {
+    /* ... */
+  }
+  async resizeIcons(icons: SvgIcon[], size: number) {
+    /* ... */
+  }
 }
 ```
 
