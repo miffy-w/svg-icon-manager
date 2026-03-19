@@ -171,6 +171,7 @@ class IconPanel {
 
     this.panel.webview.onDidReceiveMessage(
       async (message) => {
+        console.log("🚀 ~ IconPanel ~ show ~ message:", message);
         switch (message.command) {
           case "search":
             this.searchQuery = message.query;
@@ -180,8 +181,8 @@ class IconPanel {
             this.selectedDirectory = message.path;
             this.applyFilters();
             break;
-          case "copyPath":
-            this.copyPath(message.path);
+          case "copyName":
+            this.copyName(message.name);
             break;
           case "copyImport":
             this.copyImport(message.path, message.name);
@@ -273,7 +274,7 @@ class IconPanel {
                         <div class="icon-size">${icon.size.width}×${icon.size.height}</div>
                     </div>
                     <div class="card-actions">
-                        <button class="action-btn" data-action="copyPath" title="Copy Path">
+                        <button class="action-btn" data-action="copyName" title="Copy Name">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                 <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
                                 <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
@@ -318,7 +319,7 @@ class IconPanel {
                     <div class="icon-size">${icon.size.width}×${icon.size.height}</div>
                 </div>
                 <div class="card-actions">
-                    <button class="action-btn" data-action="copyPath" title="Copy Path">
+                    <button class="action-btn" data-action="copyName" title="Copy Name">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                             <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
                             <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
@@ -422,6 +423,7 @@ class IconPanel {
             position: absolute;
             left: 10px;
             top: 50%;
+            line-height: 16px;
             transform: translateY(-50%);
             color: var(--vscode-descriptionForeground);
         }
@@ -608,10 +610,6 @@ class IconPanel {
 <body>
     <div class="header">
         <h1>SVG Icons</h1>
-        <div class="header-stats">
-            ${this.filteredIcons.length} ${this.filteredIcons.length === 1 ? "icon" : "icons"}
-            ${this.filteredIcons.length !== this.icons.length ? `(filtered from ${this.icons.length})` : ""}
-        </div>
         <div class="filters">
             <div class="search-box">
                 <span class="search-icon">🔍</span>
@@ -631,6 +629,10 @@ class IconPanel {
             </svg>
             Refresh
         </button>
+        <div class="header-stats">
+          ${this.filteredIcons.length} ${this.filteredIcons.length === 1 ? "icon" : "icons"}
+          ${this.filteredIcons.length !== this.icons.length ? `(filtered from ${this.icons.length})` : ""}
+        </div>
     </div>
     
     <div class="icons-grid" id="iconsGrid">
@@ -680,10 +682,10 @@ class IconPanel {
                 const action = actionBtn.dataset.action;
                 const card = actionBtn.closest('.icon-card');
                 
-                if (action === 'copyPath') {
+                if (action === 'copyName') {
                     vscode.postMessage({
-                        command: 'copyPath',
-                        path: card.dataset.path
+                        command: 'copyName',
+                        name: card.dataset.name
                     });
                 } else if (action === 'copyImport') {
                     vscode.postMessage({
@@ -697,11 +699,6 @@ class IconPanel {
                         path: card.dataset.path
                     });
                 }
-            } else if (card) {
-                vscode.postMessage({
-                    command: 'openFile',
-                    path: card.dataset.path
-                });
             }
         });
     </script>
@@ -709,8 +706,8 @@ class IconPanel {
 </html>`;
   }
 
-  private async copyPath(path: string) {
-    await vscode.env.clipboard.writeText(path);
+  private async copyName(name: string) {
+    await vscode.env.clipboard.writeText(name);
     vscode.window.showInformationMessage("Path copied to clipboard!");
   }
 
