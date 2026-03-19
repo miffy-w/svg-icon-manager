@@ -30,7 +30,7 @@ jobs:
       run: npm run compile
 
     - name: Lint
-      run: npm run lint || echo "No lint script configured"
+      run: npm run lint
 
     - name: Test
       run: npm test || echo "No tests configured"

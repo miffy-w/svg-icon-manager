@@ -1,13 +1,10 @@
 # SVG Icon Manager
 
-![VS Code](https://img.shields.io/visual-studio-marketplace/v/miffy-w.svg-icon-manager.svg?style=flat-square)
-![License](https://img.shields.io/visual-studio-marketplace/l/miffy-w.svg-icon-manager.svg?style=flat-square)
-![Rating](https://img.shields.io/visual-studio-marketplace/r/miffy-w.svg-icon-manager.svg?style=flat-square)
-![Downloads](https://img.shields.io/visual-studio-marketplace/d/miffy-w.svg-icon-manager.svg?style=flat-square)
+![GitHub release](https://img.shields.io/github/v/release/miffy-w/svg-icon-manager?style=flat-square)
+![License](https://img.shields.io/github/license/miffy-w/svg-icon-manager?style=flat-square)
+![GitHub stars](https://img.shields.io/github/stars/miffy-w/svg-icon-manager?style=flat-square)
 
 A beautiful and efficient VS Code extension for managing SVG icons in your workspace. Scan, preview, search, and organize all your SVG icons with an intuitive card-based gallery interface.
-
-![Preview](https://github.com/miffy-w/svg-icon-manager/raw/main/resources/preview.png)
 
 ## ✨ Features
 
@@ -61,7 +58,7 @@ Select a specific directory from the dropdown to view only icons in that locatio
 
 Each icon card has quick action buttons (visible on hover):
 
-- **Copy Path** (`📋`): Copies the relative file path to clipboard
+- **Copy Name** (`📋`): Copies the icon name to clipboard
 - **Copy Import** (`📄`): Copies a ready-to-use import statement
 - **Open File** (`✅`): Opens the SVG file in the editor
 

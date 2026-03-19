@@ -26,6 +26,9 @@ jobs:
 
     - name: Package extension
       run: npm run package
+
+    - name: Publish to VS Code Marketplace
+      run: vsce publish -p ${{ secrets.VSCE_PAT }}
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
 

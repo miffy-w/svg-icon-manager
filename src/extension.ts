@@ -143,6 +143,7 @@ class IconPanel {
   private selectedDirectory: string = "";
   private searchQuery: string = "";
   private scanner: IconScanner;
+  private iconSize: number = 80;
 
   constructor(
     private context: vscode.ExtensionContext,
@@ -150,6 +151,12 @@ class IconPanel {
     scanner: IconScanner,
   ) {
     this.scanner = scanner;
+    this.loadConfig();
+  }
+
+  private loadConfig() {
+    const config = vscode.workspace.getConfiguration("svgIconManager");
+    this.iconSize = config.get<number>("iconSize", 80);
   }
 
   async show() {
@@ -211,6 +218,7 @@ class IconPanel {
   }
 
   async refresh() {
+    this.loadConfig();
     this.icons = await this.scanner.scan();
     this.directories = this.extractDirectories(this.icons);
     this.filteredIcons = [...this.icons];
@@ -353,6 +361,7 @@ class IconPanel {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
     <title>SVG Icon Manager</title>
     <style>
         * {
@@ -499,8 +508,8 @@ class IconPanel {
         }
         
         .icon-preview {
-            width: 80px;
-            height: 80px;
+            width: ${this.iconSize}px;
+            height: ${this.iconSize}px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -655,11 +664,15 @@ class IconPanel {
             }
         });
         
+        let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', (e) => {
-            vscode.postMessage({
-                command: 'search',
-                query: e.target.value
-            });
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                vscode.postMessage({
+                    command: 'search',
+                    query: e.target.value
+                });
+            }, 300);
         });
         
         document.getElementById('pathFilter').addEventListener('change', (e) => {
@@ -708,7 +721,7 @@ class IconPanel {
 
   private async copyName(name: string) {
     await vscode.env.clipboard.writeText(name);
-    vscode.window.showInformationMessage("Path copied to clipboard!");
+    vscode.window.showInformationMessage("Icon name copied to clipboard!");
   }
 
   private async copyImport(path: string, name: string) {
