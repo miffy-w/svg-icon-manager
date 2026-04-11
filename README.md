@@ -29,6 +29,14 @@ A beautiful and efficient VS Code extension for managing SVG icons in your works
 3. Search for "SVG Icon Manager"
 4. Click Install
 
+```bash
+# cursor
+cursor --install-extension svg-icon-manager.svg-icon-manager
+```
+
+or download .vsix file and then import it:
+[https://marketplace.visualstudio.com/\_apis/public/gallery/publishers/svg-icon-manager/vsextensions/svg-icon-manager/1.1.3/vspackage](https://marketplace.visualstudio.com/_apis/public/gallery/publishers/svg-icon-manager/vsextensions/svg-icon-manager/1.1.3/vspackage)
+
 ### Manual Installation
 
 1. Download the latest `.vsix` file from the [Releases](https://github.com/miffy-w/svg-icon-manager/releases) page

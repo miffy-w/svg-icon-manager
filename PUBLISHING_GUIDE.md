@@ -3,6 +3,7 @@
 本指南详细介绍如何将 VSCode 插件发布到 **VS Code Marketplace** 和 **OpenVSX** 两个扩展市场，包括完整的发布流程、最佳实践和常见问题解决方案。
 
 > **为什么要发布到两个市场？**
+>
 > - **VS Code Marketplace** - Microsoft 官方市场，VS Code 默认使用
 > - **OpenVSX** - 开源扩展注册中心，被 Cursor、VSCodium、Theia、Trae 等 IDE 使用
 
@@ -91,47 +92,58 @@ fi
 #### 必需文档
 
 **README.md**
+
 ```markdown
 # 插件名称
 
 简短描述（1-2句话）
 
 ## 功能特性
+
 - 功能1
 - 功能2
 
 ## 安装
+
 ...
 
 ## 使用
+
 ...
 
 ## 配置
+
 ...
 
 ## 常见问题
+
 ...
 ```
 
 **CHANGELOG.md**
+
 ```markdown
 # Changelog
 
 ## [1.0.0] - 2026-03-18
 
 ### Added
+
 - 新功能1
 - 新功能2
 
 ### Fixed
+
 - 修复的问题1
 - 修复的问题2
 
 ### Changed
+
 - 变更的内容
 ```
 
 **package.json 关键字段**
+
 ```json
 {
   "name": "extension-id",
@@ -148,10 +160,7 @@ fi
   },
   "license": "MIT",
   "icon": "resources/icon.png",
-  "keywords": [
-    "keyword1",
-    "keyword2"
-  ]
+  "keywords": ["keyword1", "keyword2"]
 }
 ```
 
@@ -174,6 +183,7 @@ resources/
 ```
 
 **图标设计规范**：
+
 - 尺寸：128x128 像素（PNG）
 - 格式：PNG 或 SVG
 - 透明背景
@@ -181,6 +191,7 @@ resources/
 - 符合 VSCode 设计风格
 
 **预览图规范**：
+
 - 宽高比：16:9 或 4:3
 - 分辨率：建议 1280x720 或 1920x1080
 - 内容：展示插件主要功能
@@ -196,6 +207,7 @@ screenshots/
 ```
 
 **截图要求**：
+
 - 分辨率：1920x1080 或更高
 - 格式：PNG
 - 内容：清晰展示功能
@@ -240,6 +252,7 @@ graph LR
 ```
 
 **注意事项**：
+
 - 发布者名称一旦创建不可更改
 - 只能使用小写字母、数字和连字符
 - 名称必须全局唯一
@@ -281,6 +294,7 @@ VSCE_PAT=ghp_xxxxxxxxxxxxxxxxxxxx
 #### 配置环境变量
 
 **Windows (PowerShell)**
+
 ```powershell
 # 临时设置（当前会话）
 $env:VSCE_PAT = "your-token-here"
@@ -290,6 +304,7 @@ setx VSCE_PAT "your-token-here"
 ```
 
 **macOS/Linux**
+
 ```bash
 # 临时设置（当前会话）
 export VSCE_PAT="your-token-here"
@@ -404,6 +419,7 @@ git push origin main --tags
 ```
 
 **预发布版本流程**：
+
 1. 开发新功能
 2. 发布 Alpha 版本（内部测试）
 3. 发布 Beta 版本（公开测试）
@@ -522,6 +538,7 @@ node_modules/**
 ```
 
 **.vscodeignore 规则**：
+
 - `**/` 表示任意子目录
 - `*` 表示任意文件名
 - `!` 表示例外（不排除）
@@ -559,24 +576,28 @@ code --install-extension my-extension-1.0.0.vsix
 ## 测试清单
 
 ### 基础功能
+
 - [ ] 插件可以正常激活
 - [ ] 所有命令可以执行
 - [ ] 快捷键工作正常
 - [ ] 配置项可以修改
 
 ### UI 功能
+
 - [ ] Webview 面板正常显示
 - [ ] 所有交互功能正常
 - [ ] 响应式布局正常
 - [ ] 主题适配正确
 
 ### 性能
+
 - [ ] 启动速度正常
 - [ ] 无明显卡顿
 - [ ] 内存使用合理
 - [ ] 无内存泄漏
 
 ### 兼容性
+
 - [ ] 不同操作系统测试
 - [ ] 不同 VSCode 版本测试
 - [ ] 不同主题测试
@@ -652,6 +673,7 @@ sequenceDiagram
    - 检查描述和截图
 
 2. **测试安装**
+
    ```bash
    # 在新的 VSCode 实例中测试
    code --install-extension your-extension-name
@@ -691,18 +713,21 @@ gh release create v1.0.0 \
 
 #### Release 模板
 
-```markdown
+````markdown
 ## Release v1.0.0
 
 ### 🎉 New Features
+
 - 新功能1
 - 新功能2
 
 ### 🐛 Bug Fixes
+
 - 修复的问题1
 - 修复的问题2
 
 ### 📝 Documentation
+
 - 更新文档
 
 ### 📦 Installation
@@ -710,13 +735,15 @@ gh release create v1.0.0 \
 ```bash
 code --install-extension your-extension-name
 ```
+````
 
 Or install from [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=your-publisher-name.your-extension-name)
 
 ### 📄 Change Log
 
 See [CHANGELOG.md](CHANGELOG.md) for full details.
-```
+
+````
 
 ---
 
@@ -758,7 +785,7 @@ npm install -g ovsx
 
 # 验证安装
 ovsx --version
-```
+````
 
 ### 5. 发布扩展
 
@@ -788,6 +815,7 @@ ovsx publish my-extension-1.0.0.vsix -p your-openvsx-token
 1. 在 GitHub 创建 Issue：https://github.com/EclipseFdn/open-vsx.org/issues/new
 2. Issue 标题：`Claim namespace ownership: your-namespace`
 3. Issue 内容示例：
+
    ```
    I would like to claim ownership of the namespace "your-namespace".
 
@@ -797,20 +825,21 @@ ovsx publish my-extension-1.0.0.vsix -p your-openvsx-token
 
    I am the author of this extension and would like to have my extensions verified.
    ```
+
 4. 等待 Eclipse 基金会管理员审核
 
 验证后，扩展会显示盾牌图标 ✓。
 
 ### 7. OpenVSX vs VS Code Marketplace 对比
 
-| 特性 | VS Code Marketplace | OpenVSX |
-|------|---------------------|---------|
-| 维护方 | Microsoft | Eclipse 基金会 |
-| 开源 | 否 | 是 |
-| 默认使用 | VS Code | Cursor, VSCodium, Theia |
-| 需要注册 | Microsoft/GitHub 账号 | GitHub/Eclipse 账号 |
-| 发布工具 | `vsce` | `ovsx` |
-| Namespace 验证 | 自动 | 需申请 |
+| 特性           | VS Code Marketplace   | OpenVSX                 |
+| -------------- | --------------------- | ----------------------- |
+| 维护方         | Microsoft             | Eclipse 基金会          |
+| 开源           | 否                    | 是                      |
+| 默认使用       | VS Code               | Cursor, VSCodium, Theia |
+| 需要注册       | Microsoft/GitHub 账号 | GitHub/Eclipse 账号     |
+| 发布工具       | `vsce`                | `ovsx`                  |
+| Namespace 验证 | 自动                  | 需申请                  |
 
 ### 8. 同时发布到两个市场
 
@@ -876,24 +905,30 @@ graph TD
 ## Bug Report
 
 ### Description
+
 简要描述问题
 
 ### Steps to Reproduce
+
 1. 步骤1
 2. 步骤2
 
 ### Expected Behavior
+
 期望的行为
 
 ### Actual Behavior
+
 实际的行为
 
 ### Environment
+
 - OS: [e.g. Windows 10]
 - VS Code Version: [e.g. 1.74.0]
 - Extension Version: [e.g. 1.0.0]
 
 ### Screenshots
+
 如果相关，添加截图
 ```
 
@@ -933,12 +968,14 @@ graph LR
 ## 文档更新检查清单
 
 ### 每次发布后
+
 - [ ] 更新 CHANGELOG.md
 - [ ] 更新 README.md（如有新功能）
 - [ ] 更新截图（如有 UI 变更）
 - [ ] 更新配置说明（如有新配置）
 
 ### 定期维护
+
 - [ ] 检查文档准确性
 - [ ] 更新示例代码
 - [ ] 添加常见问题
@@ -981,7 +1018,7 @@ name: Release Extension
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
@@ -994,8 +1031,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -1030,10 +1067,10 @@ jobs:
 
 在 GitHub 仓库设置中添加以下 Secrets：
 
-| Secret 名称 | 用途 | 获取方式 |
-|-------------|------|----------|
-| `VSCE_PAT` | VS Code Marketplace 发布令牌 | https://dev.azure.com/_usersSettings/tokens |
-| `OVSX_PAT` | OpenVSX 发布令牌 | https://open-vsx.org/user-settings/tokens |
+| Secret 名称 | 用途                         | 获取方式                                    |
+| ----------- | ---------------------------- | ------------------------------------------- |
+| `VSCE_PAT`  | VS Code Marketplace 发布令牌 | https://dev.azure.com/_usersSettings/tokens |
+| `OVSX_PAT`  | OpenVSX 发布令牌             | https://open-vsx.org/user-settings/tokens   |
 
 **配置步骤**：
 
@@ -1108,7 +1145,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
       - run: npm ci
       - run: npm run compile
       - run: npm test
@@ -1127,6 +1164,7 @@ Error: Publisher 'your-name' not found
 ```
 
 **解决方案**：
+
 1. 访问 [Marketplace 管理页面](https://marketplace.visualstudio.com/manage)
 2. 创建发布者
 3. 更新 package.json 中的 publisher 字段
@@ -1138,6 +1176,7 @@ Error: Invalid Personal Access Token
 ```
 
 **解决方案**：
+
 1. 访问 [Token 管理页面](https://dev.azure.com/_usersSettings/tokens)
 2. 生成新的 PAT
 3. 确保选择 "Marketplace → Manage" 权限
@@ -1150,6 +1189,7 @@ Error: Extension size exceeds 100MB
 ```
 
 **解决方案**：
+
 1. 检查 .vscodeignore 配置
 2. 排除不必要的文件
 3. 压缩图片资源
@@ -1175,6 +1215,7 @@ Error: Unknown publisher: your-publisher-name
 **原因**：在 OpenVSX 上没有创建对应的 namespace。
 
 **解决方案**：
+
 1. 登录 https://open-vsx.org/
 2. 进入用户设置 → Namespaces
 3. 创建与 `package.json` 中 `publisher` 字段同名的 namespace
@@ -1186,6 +1227,7 @@ Error: Invalid token
 ```
 
 **解决方案**：
+
 1. 确认 token 有 `publish` 权限
 2. 检查 token 是否过期
 3. 重新生成 token
@@ -1197,6 +1239,7 @@ Error: Invalid token
 **影响**：扩展可以正常安装使用，只是会显示警告图标。
 
 **解决方案**：
+
 1. 在 https://github.com/EclipseFdn/open-vsx.org/issues 创建 Issue
 2. 申请 namespace 所有权验证
 3. 等待管理员审核通过
@@ -1206,6 +1249,7 @@ Error: Invalid token
 **原因**：Cursor、Trae 等 IDE 默认使用 OpenVSX 市场，而不是 VS Code Marketplace。
 
 **解决方案**：
+
 1. 将扩展发布到 OpenVSX
 2. 确保发布成功后等待几分钟让索引更新
 3. 搜索时使用完整扩展 ID：`namespace.extension-name`
@@ -1215,12 +1259,14 @@ Error: Invalid token
 #### 审核被拒绝
 
 **常见原因**：
+
 - 违反 Marketplace 政策
 - 插件名称已被使用
 - 描述不够清晰
 - 缺少必要的截图
 
 **解决方案**：
+
 1. 仔细阅读 [Marketplace 政策](https://code.visualstudio.com/api/references/extension-guidelines)
 2. 修改违规内容
 3. 提供详细的描述和截图
@@ -1239,6 +1285,7 @@ Error: Invalid token
 ```
 
 **最佳实践**：
+
 - 测试多个 VSCode 版本
 - 使用稳定的 API
 - 避免使用实验性 API
@@ -1262,16 +1309,17 @@ code --install-extension my-extension.vsix
 #### 启动缓慢
 
 **解决方案**：
+
 1. 延迟加载
 2. 减少激活事件
 3. 优化初始化代码
 
 ```typescript
 // 延迟加载示例
-vscode.commands.registerCommand('myExt.show', () => {
-    // 只在需要时加载模块
-    const panel = new Panel();
-    panel.show();
+vscode.commands.registerCommand("myExt.show", () => {
+  // 只在需要时加载模块
+  const panel = new Panel();
+  panel.show();
 });
 ```
 
@@ -1297,22 +1345,26 @@ hotfix/*    # 紧急修复
 ## 发布前检查清单
 
 ### 代码质量
+
 - [ ] 所有测试通过
 - [ ] 代码审查完成
 - [ ] 无编译错误
 - [ ] 无控制台警告
 
 ### 文档
+
 - [ ] README.md 更新
 - [ ] CHANGELOG.md 更新
 - [ ] 截图更新
 
 ### 测试
+
 - [ ] 功能测试完成
 - [ ] 兼容性测试完成
 - [ ] 性能测试完成
 
 ### 发布
+
 - [ ] 版本号更新
 - [ ] Git 标签创建
 - [ ] .vsix 文件生成
@@ -1404,9 +1456,9 @@ vsce publish --sign
 
 ```javascript
 // 使用遥测（Telemetry）
-const telemetry = vscode.extensions.getExtension('publisher.extension');
-telemetry.exports.sendTelemetryEvent('event_name', {
-    data: 'value'
+const telemetry = vscode.extensions.getExtension("publisher.extension");
+telemetry.exports.sendTelemetryEvent("event_name", {
+  data: "value",
 });
 ```
 
@@ -1494,10 +1546,10 @@ npx ovsx publish -p $OVSX_PAT
 
 ### 扩展 ID 说明
 
-| 市场 | 扩展完整 ID | 示例 |
-|------|-------------|------|
+| 市场                | 扩展完整 ID          | 示例                                |
+| ------------------- | -------------------- | ----------------------------------- |
 | VS Code Marketplace | `{publisher}.{name}` | `svg-icon-manager.svg-icon-manager` |
-| OpenVSX | `{namespace}.{name}` | `svg-icon-manager.svg-icon-manager` |
+| OpenVSX             | `{namespace}.{name}` | `svg-icon-manager.svg-icon-manager` |
 
 > 建议：publisher 和 namespace 使用相同名称，方便管理。
 
