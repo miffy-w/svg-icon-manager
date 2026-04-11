@@ -1,6 +1,10 @@
 # VSCode 插件发布指南
 
-本指南详细介绍如何将 VSCode 插件发布到 VSCode Marketplace，包括完整的发布流程、最佳实践和常见问题解决方案。
+本指南详细介绍如何将 VSCode 插件发布到 **VS Code Marketplace** 和 **OpenVSX** 两个扩展市场，包括完整的发布流程、最佳实践和常见问题解决方案。
+
+> **为什么要发布到两个市场？**
+> - **VS Code Marketplace** - Microsoft 官方市场，VS Code 默认使用
+> - **OpenVSX** - 开源扩展注册中心，被 Cursor、VSCodium、Theia、Trae 等 IDE 使用
 
 ## 目录
 
@@ -8,10 +12,11 @@
 2. [账户与权限配置](#账户与权限配置)
 3. [版本管理](#版本管理)
 4. [发布流程](#发布流程)
-5. [发布后维护](#发布后维护)
-6. [自动化发布](#自动化发布)
-7. [常见问题](#常见问题)
-8. [最佳实践](#最佳实践)
+5. [发布到 OpenVSX](#发布到-openvsx)
+6. [发布后维护](#发布后维护)
+7. [自动化发布](#自动化发布)
+8. [常见问题](#常见问题)
+9. [最佳实践](#最佳实践)
 
 ---
 
@@ -715,6 +720,112 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 
 ---
 
+## 发布到 OpenVSX
+
+OpenVSX 是一个开源的 VS Code 扩展注册中心，被 Cursor、VSCodium、Theia 等基于 VS Code 的 IDE 使用。发布到 OpenVSX 可以让更多用户安装你的扩展。
+
+### 1. 创建 OpenVSX 账户
+
+1. 访问 https://open-vsx.org/
+2. 使用 **GitHub** 或 **Eclipse** 账号登录
+3. 进入用户设置页面
+
+### 2. 创建 Namespace（命名空间）
+
+Namespace 相当于 VS Code Marketplace 的 Publisher。
+
+1. 登录后进入用户设置
+2. 找到 **Namespaces** 部分
+3. 点击 **Create Namespace**
+4. 输入 namespace 名称（建议与 VS Code Marketplace 的 publisher 一致）
+
+> **注意**：Namespace 名称规则：`[\w\-\+\$~]+`（字母、数字、下划线、连字符等）
+
+### 3. 生成 Personal Access Token
+
+1. 进入用户设置 → **Access Tokens**
+2. 点击 **Create new token**
+3. 勾选权限：
+   - `publish` - 发布扩展
+   - `manage` - 管理 namespace（可选）
+4. 复制生成的 Token
+
+### 4. 安装 ovsx CLI
+
+```bash
+# 全局安装
+npm install -g ovsx
+
+# 验证安装
+ovsx --version
+```
+
+### 5. 发布扩展
+
+```bash
+# 设置环境变量
+export OVSX_PAT="your-openvsx-token"
+
+# 发布
+ovsx publish
+
+# 或直接指定 token
+ovsx publish -p your-openvsx-token
+
+# 发布特定版本
+ovsx publish 1.0.0 -p your-openvsx-token
+
+# 从 vsix 文件发布
+ovsx publish my-extension-1.0.0.vsix -p your-openvsx-token
+```
+
+### 6. 验证 Namespace（可选）
+
+默认创建的 namespace 是 **unverified** 状态，扩展可以正常发布和使用，但会显示警告图标。
+
+**验证步骤**：
+
+1. 在 GitHub 创建 Issue：https://github.com/EclipseFdn/open-vsx.org/issues/new
+2. Issue 标题：`Claim namespace ownership: your-namespace`
+3. Issue 内容示例：
+   ```
+   I would like to claim ownership of the namespace "your-namespace".
+
+   - GitHub username: your-username
+   - GitHub repository: https://github.com/your-username/your-repo
+   - OpenVSX namespace: your-namespace
+
+   I am the author of this extension and would like to have my extensions verified.
+   ```
+4. 等待 Eclipse 基金会管理员审核
+
+验证后，扩展会显示盾牌图标 ✓。
+
+### 7. OpenVSX vs VS Code Marketplace 对比
+
+| 特性 | VS Code Marketplace | OpenVSX |
+|------|---------------------|---------|
+| 维护方 | Microsoft | Eclipse 基金会 |
+| 开源 | 否 | 是 |
+| 默认使用 | VS Code | Cursor, VSCodium, Theia |
+| 需要注册 | Microsoft/GitHub 账号 | GitHub/Eclipse 账号 |
+| 发布工具 | `vsce` | `ovsx` |
+| Namespace 验证 | 自动 | 需申请 |
+
+### 8. 同时发布到两个市场
+
+```bash
+# 发布到 VS Code Marketplace
+vsce publish -p $VSCE_PAT
+
+# 发布到 OpenVSX
+ovsx publish -p $OVSX_PAT
+```
+
+或使用 GitHub Actions 自动化（见下方章节）。
+
+---
+
 ## 发布后维护
 
 ### 1. 监控反馈
@@ -878,12 +989,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -898,7 +1009,13 @@ jobs:
       - name: Package extension
         run: npm run package
 
-      - name: Create Release
+      - name: Publish to VS Code Marketplace
+        run: npx vsce publish -p ${{ secrets.VSCE_PAT }}
+
+      - name: Publish to OpenVSX
+        run: npx ovsx publish -p ${{ secrets.OVSX_PAT }}
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
@@ -907,10 +1024,23 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to Marketplace
-        run: vsce publish -p ${{ secrets.VSCE_PAT }}
 ```
+
+#### 配置 GitHub Secrets
+
+在 GitHub 仓库设置中添加以下 Secrets：
+
+| Secret 名称 | 用途 | 获取方式 |
+|-------------|------|----------|
+| `VSCE_PAT` | VS Code Marketplace 发布令牌 | https://dev.azure.com/_usersSettings/tokens |
+| `OVSX_PAT` | OpenVSX 发布令牌 | https://open-vsx.org/user-settings/tokens |
+
+**配置步骤**：
+
+1. 进入 GitHub 仓库 → Settings → Secrets and variables → Actions
+2. 点击 "New repository secret"
+3. 添加 `VSCE_PAT` 和 `OVSX_PAT`
+4. 保存配置
 
 ### 2. 版本自动化
 
@@ -1033,6 +1163,52 @@ vsce ls
 vsce package --out package.zip
 unzip -l package.zip
 ```
+
+### OpenVSX 发布问题
+
+#### 错误：Unknown publisher
+
+```
+Error: Unknown publisher: your-publisher-name
+```
+
+**原因**：在 OpenVSX 上没有创建对应的 namespace。
+
+**解决方案**：
+1. 登录 https://open-vsx.org/
+2. 进入用户设置 → Namespaces
+3. 创建与 `package.json` 中 `publisher` 字段同名的 namespace
+
+#### 错误：Invalid Personal Access Token
+
+```
+Error: Invalid token
+```
+
+**解决方案**：
+1. 确认 token 有 `publish` 权限
+2. 检查 token 是否过期
+3. 重新生成 token
+
+#### 扩展显示 "Unverified" 警告
+
+**原因**：Namespace 没有被验证。
+
+**影响**：扩展可以正常安装使用，只是会显示警告图标。
+
+**解决方案**：
+1. 在 https://github.com/EclipseFdn/open-vsx.org/issues 创建 Issue
+2. 申请 namespace 所有权验证
+3. 等待管理员审核通过
+
+#### Cursor/Trae 搜索不到扩展
+
+**原因**：Cursor、Trae 等 IDE 默认使用 OpenVSX 市场，而不是 VS Code Marketplace。
+
+**解决方案**：
+1. 将扩展发布到 OpenVSX
+2. 确保发布成功后等待几分钟让索引更新
+3. 搜索时使用完整扩展 ID：`namespace.extension-name`
 
 ### 2. 审核问题
 
@@ -1272,14 +1448,58 @@ telemetry.exports.sendTelemetryEvent('event_name', {
 
 发布 VSCode 插件需要仔细的准备和测试，遵循最佳实践可以确保发布过程顺利，为用户提供优质的使用体验。
 
+### 快速发布清单
+
+#### 首次发布准备
+
+- [ ] 创建 VS Code Marketplace Publisher
+- [ ] 创建 OpenVSX Namespace
+- [ ] 生成 VSCE_PAT 和 OVSX_PAT
+- [ ] 配置 GitHub Secrets
+- [ ] 配置 package.json（publisher、name、description 等）
+- [ ] 准备图标（128x128 PNG）
+- [ ] 编写 README.md 和 CHANGELOG.md
+
+#### 每次发布流程
+
+```bash
+# 1. 更新版本号
+npm version patch/minor/major
+
+# 2. 更新 CHANGELOG.md
+
+# 3. 编译测试
+npm run compile
+npm test
+
+# 4. 创建标签并推送（触发自动发布）
+git tag v1.0.0
+git push origin main --tags
+
+# 或手动发布
+npm run package
+npx vsce publish -p $VSCE_PAT
+npx ovsx publish -p $OVSX_PAT
+```
+
 ### 关键要点
 
 1. ✅ 详细的发布前检查
 2. ✅ 正确的版本管理
 3. ✅ 完善的文档和资源
 4. ✅ 严格的测试流程
-5. ✅ 有效的反馈监控
-6. ✅ 定期的维护更新
+5. ✅ 同时发布到两个市场（VS Code Marketplace + OpenVSX）
+6. ✅ 有效的反馈监控
+7. ✅ 定期的维护更新
+
+### 扩展 ID 说明
+
+| 市场 | 扩展完整 ID | 示例 |
+|------|-------------|------|
+| VS Code Marketplace | `{publisher}.{name}` | `svg-icon-manager.svg-icon-manager` |
+| OpenVSX | `{namespace}.{name}` | `svg-icon-manager.svg-icon-manager` |
+
+> 建议：publisher 和 namespace 使用相同名称，方便管理。
 
 ### 下一步
 
