@@ -12,7 +12,7 @@ A beautiful and efficient VS Code extension for managing SVG icons in your works
 - **🎨 Beautiful Gallery**: Card-based icon preview with hover effects
 - **🔎 Powerful Search**: Search icons by name or file path
 - **📁 Path Filtering**: Filter icons by directory to quickly find what you need
-- **📋 Quick Actions**: 
+- **📋 Quick Actions**:
   - Copy file path to clipboard
   - Copy import code instantly
   - Open SVG file in editor
@@ -70,10 +70,10 @@ Click the "Refresh" button to rescan your workspace for new or modified SVG file
 
 You can customize the extension behavior through VS Code settings:
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `svgIconManager.ignorePatterns` | array | `["node_modules", ".git", "out", "dist", "build", "coverage"]` | Directory patterns to ignore when scanning |
-| `svgIconManager.iconSize` | number | `80` | Size of icon preview in pixels (48-128) |
+| Setting                         | Type   | Default                                                        | Description                                |
+| ------------------------------- | ------ | -------------------------------------------------------------- | ------------------------------------------ |
+| `svgIconManager.ignorePatterns` | array  | `["node_modules", ".git", "out", "dist", "build", "coverage"]` | Directory patterns to ignore when scanning |
+| `svgIconManager.iconSize`       | number | `80`                                                           | Size of icon preview in pixels (48-128)    |
 
 ### Example Configuration
 
