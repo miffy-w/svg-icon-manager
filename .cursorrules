@@ -1,0 +1,40 @@
+# Cursor AI Rules - SVG Icon Manager
+
+## 项目概述
+VS Code 扩展，用于扫描、预览和管理工程中的 SVG 图标。
+
+## 技术栈
+- TypeScript 5.x
+- VS Code Extension API
+- WebView (HTML/CSS/JS)
+
+## 编码规范
+
+### TypeScript
+- 严格模式，禁止 any 类型
+- 使用接口定义数据结构
+- async/await 处理异步
+
+### 文件路径
+- 始终使用绝对路径
+- 跨平台兼容：使用 path.join() 或 replace(/\\/g, "/")
+
+### WebView
+- 通过 postMessage 通信
+- 样式支持 VS Code 主题
+- 防止 XSS，不直接插入用户内容
+
+## 常用命令
+```bash
+npm run compile   # 编译
+npm run lint      # 代码检查
+npm run package   # 打包 vsix
+```
+
+## 扩展配置
+- 命令前缀: svgIconManager
+- 配置命名空间: svgIconManager
+
+## 修改后必做
+- TypeScript 修改后运行 npm run compile
+- 测试时按 F5 启动扩展开发主机
