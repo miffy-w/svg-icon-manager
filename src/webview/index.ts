@@ -118,7 +118,7 @@ export class IconPanel {
     this.loadConfig();
     this.icons = await this.scanner.scan();
     this.directories = this.extractDirectories(this.icons);
-    this.filteredIcons = [...this.icons];
+    this.applyFilters();
     this.updateFull();
   }
 
