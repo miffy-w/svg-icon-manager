@@ -41,7 +41,7 @@ A beautiful and efficient VS Code extension for managing SVG icons in your works
 
 ### Opening the Extension
 
-- **Keyboard Shortcut**: Press `Ctrl+Shift+I` (Mac: `Cmd+Shift+I`)
+- **Keyboard Shortcut**: Press `Ctrl+Alt+S` (Mac: `Cmd+Alt+S`)
 - **Command Palette**: Press `Ctrl+Shift+P`, type "SVG Icon Manager"
 
 ### Features

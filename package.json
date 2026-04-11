@@ -51,8 +51,8 @@
     "keybindings": [
       {
         "command": "svgIconManager.show",
-        "key": "ctrl+shift+i",
-        "mac": "cmd+shift+i"
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s"
       }
     ],
     "configuration": {
