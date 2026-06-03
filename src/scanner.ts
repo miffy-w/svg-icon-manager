@@ -160,7 +160,7 @@ export class IconScanner {
       }
 
       // 其他图片格式：只获取尺寸，不读取内容
-      const size = await this.getImageSize(filePath);
+      const size = await this.getImageSize();
 
       return {
         name,
@@ -211,7 +211,7 @@ export class IconScanner {
    * 获取图片尺寸（通过读取文件头）
    * 简化实现：返回默认尺寸，实际可使用 image-size 库
    */
-  private async getImageSize(filePath: string): Promise<{ width: number; height: number }> {
+  private async getImageSize(): Promise<{ width: number; height: number }> {
     // TODO: 可集成 image-size 库获取实际尺寸
     // 当前返回默认尺寸
     return { width: 0, height: 0 };

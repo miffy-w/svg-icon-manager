@@ -103,16 +103,18 @@ function bindImagePreviewEvents() {
     imagePreviews.forEach(preview => {
         preview.addEventListener('click', (e) => {
             if (e.target.closest('.action-btn')) return;
-            openPreviewModal(preview.dataset.src, preview.closest('.icon-card'));
+            openPreviewModal(preview.closest('.icon-card'));
         });
     });
 }
 
-function openPreviewModal(src, card) {
+function openPreviewModal(card) {
     const modal = document.getElementById('previewModal');
     const img = document.getElementById('previewImage');
     const fileName = document.getElementById('previewFileName');
     const fileSize = document.getElementById('previewFileSize');
+
+    if (!card) return;
 
     // 获取图片 URI (需要通过扩展传递)
     img.src = card.querySelector('img')?.src || '';
