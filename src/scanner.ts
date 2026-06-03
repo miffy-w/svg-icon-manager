@@ -1,13 +1,34 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { SvgIcon } from "./types";
+import { ImageAsset, ImageFormat } from "./types";
 
 /**
- * IconScanner - Scans workspace for SVG icons
+ * 支持的图片格式列表
+ */
+const SUPPORTED_FORMATS: ImageFormat[] = [
+  'svg', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'ico', 'bmp'
+];
+
+/**
+ * 格式对应的文件扩展名映射
+ */
+const FORMAT_EXTENSIONS: Record<ImageFormat, string[]> = {
+  svg: ['.svg'],
+  png: ['.png'],
+  jpg: ['.jpg', '.jpeg'],
+  jpeg: ['.jpg', '.jpeg'],
+  webp: ['.webp'],
+  gif: ['.gif'],
+  ico: ['.ico'],
+  bmp: ['.bmp']
+};
+
+/**
+ * IconScanner - Scans workspace for image assets
  */
 export class IconScanner {
-  private icons: SvgIcon[] = [];
+  private assets: ImageAsset[] = [];
   private ignorePatterns: string[] = [];
 
   constructor(private workspaceRoot: string | undefined) {
@@ -26,33 +47,46 @@ export class IconScanner {
     ]);
   }
 
-  async scan(): Promise<SvgIcon[]> {
-    this.icons = [];
+  /**
+   * 扫描指定格式的图片资源
+   * @param formats 要扫描的格式列表，undefined 表示扫描全部
+   */
+  async scan(formats?: ImageFormat[]): Promise<ImageAsset[]> {
+    this.assets = [];
     this.loadConfig();
 
     if (!this.workspaceRoot) {
-      return this.icons;
+      return this.assets;
     }
 
-    const svgFiles = await this.findSvgFiles(this.workspaceRoot);
+    const targetFormats = formats || SUPPORTED_FORMATS;
+    const files = await this.findImageFiles(this.workspaceRoot, targetFormats);
 
-    for (const filePath of svgFiles) {
-      try {
-        const icon = await this.parseSvgFile(filePath);
-        if (icon) {
-          this.icons.push(icon);
-        }
-      } catch (error) {
-        console.error(`Error parsing SVG file ${filePath}:`, error);
-      }
-    }
+    // 使用 Promise.allSettled 确保部分失败不影响整体
+    const results = await Promise.allSettled(
+      files.map(filePath => this.parseImageFile(filePath))
+    );
 
-    this.icons.sort((a, b) => a.name.localeCompare(b.name));
-    return this.icons;
+    // 只取成功的解析结果
+    this.assets = results
+      .filter((r): r is PromiseFulfilledResult<ImageAsset | null> => r.status === 'fulfilled')
+      .map(r => r.value)
+      .filter((asset): asset is ImageAsset => asset !== null);
+
+    this.assets.sort((a, b) => a.name.localeCompare(b.name));
+    return this.assets;
   }
 
-  private async findSvgFiles(
+  /**
+   * 获取所有支持的格式列表
+   */
+  static getSupportedFormats(): ImageFormat[] {
+    return [...SUPPORTED_FORMATS];
+  }
+
+  private async findImageFiles(
     dir: string,
+    formats: ImageFormat[],
     depth: number = 0,
     maxDepth: number = 10,
   ): Promise<string[]> {
@@ -73,14 +107,22 @@ export class IconScanner {
         }
 
         if (entry.isDirectory()) {
-          const subFiles = await this.findSvgFiles(
+          const subFiles = await this.findImageFiles(
             fullPath,
+            formats,
             depth + 1,
             maxDepth,
           );
           files.push(...subFiles);
-        } else if (entry.name.toLowerCase().endsWith(".svg")) {
-          files.push(fullPath);
+        } else {
+          // 检查文件扩展名是否匹配目标格式
+          const ext = path.extname(entry.name).toLowerCase();
+          const isMatch = formats.some(format =>
+            FORMAT_EXTENSIONS[format].includes(ext)
+          );
+          if (isMatch) {
+            files.push(fullPath);
+          }
         }
       }
     } catch (error) {
@@ -90,25 +132,56 @@ export class IconScanner {
     return files;
   }
 
-  private async parseSvgFile(filePath: string): Promise<SvgIcon | null> {
+  private async parseImageFile(filePath: string): Promise<ImageAsset | null> {
     try {
-      const content = await fs.promises.readFile(filePath, "utf-8");
-      const relativePath = path.relative(this.workspaceRoot!, filePath);
-      const name = path.basename(filePath, ".svg");
+      const ext = path.extname(filePath).toLowerCase();
+      const format = this.getFormatFromExtension(ext);
 
-      const size = this.extractSvgSize(content);
+      if (!format) {
+        return null;
+      }
+
+      const relativePath = path.relative(this.workspaceRoot!, filePath);
+      const name = path.basename(filePath, ext);
+
+      // SVG 特殊处理：读取内容用于内联渲染
+      if (format === 'svg') {
+        const content = await fs.promises.readFile(filePath, 'utf-8');
+        const size = this.extractSvgSize(content);
+
+        return {
+          name,
+          path: filePath,
+          relativePath: relativePath.replace(/\\/g, "/"),
+          format,
+          size,
+          content,
+        };
+      }
+
+      // 其他图片格式：只获取尺寸，不读取内容
+      const size = await this.getImageSize(filePath);
 
       return {
         name,
         path: filePath,
         relativePath: relativePath.replace(/\\/g, "/"),
+        format,
         size,
-        content,
       };
     } catch (error) {
-      console.error(`Error parsing SVG file ${filePath}:`, error);
+      console.error(`Error parsing image file ${filePath}:`, error);
       return null;
     }
+  }
+
+  private getFormatFromExtension(ext: string): ImageFormat | null {
+    for (const [format, extensions] of Object.entries(FORMAT_EXTENSIONS)) {
+      if (extensions.includes(ext)) {
+        return format as ImageFormat;
+      }
+    }
+    return null;
   }
 
   private extractSvgSize(content: string): { width: number; height: number } {
@@ -132,5 +205,15 @@ export class IconScanner {
     }
 
     return { width, height };
+  }
+
+  /**
+   * 获取图片尺寸（通过读取文件头）
+   * 简化实现：返回默认尺寸，实际可使用 image-size 库
+   */
+  private async getImageSize(filePath: string): Promise<{ width: number; height: number }> {
+    // TODO: 可集成 image-size 库获取实际尺寸
+    // 当前返回默认尺寸
+    return { width: 0, height: 0 };
   }
 }
