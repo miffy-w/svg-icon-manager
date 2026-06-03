@@ -8,10 +8,13 @@ export function getStyles(iconSize: number): string {
 ${baseStyles}
 ${headerStyles}
 ${filterStyles}
+${formatFilterStyles}
 ${gridStyles}
 ${cardStyles(iconSize)}
+${imageOverlayStyles}
 ${scrollbarStyles}
 ${emptyStateStyles}
+${modalStyles}
 `;
 }
 
@@ -279,5 +282,200 @@ const emptyStateStyles = `
     height: 64px;
     margin-bottom: 16px;
     opacity: 0.5;
+}
+`;
+
+const formatFilterStyles = `
+.format-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.format-filter {
+    padding: 6px 12px;
+    background-color: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 4px;
+    color: var(--vscode-input-foreground);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.format-filter.active {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: var(--vscode-button-background);
+}
+
+.format-filter:hover {
+    border-color: var(--vscode-focusBorder);
+}
+
+.format-filter-icon {
+    font-size: 14px;
+}
+
+.format-filter-count {
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+    background-color: var(--vscode-editor-background);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+`;
+
+const modalStyles = `
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal {
+    background-color: var(--vscode-editor-background);
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: auto;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--vscode-editor-border);
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--vscode-foreground);
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.modal-close:hover {
+    background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.modal-image-container {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--vscode-editor-background);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.modal-image {
+    max-width: 100%;
+    max-height: 500px;
+    display: block;
+}
+
+.modal-image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.3) 100%);
+    pointer-events: none;
+}
+
+.modal-info {
+    text-align: center;
+    width: 100%;
+}
+
+.modal-image-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--vscode-foreground);
+    margin-bottom: 8px;
+}
+
+.modal-image-details {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.modal-detail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.modal-detail-label {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.modal-detail-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--vscode-foreground);
+}
+`;
+
+const imageOverlayStyles = `
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.3) 100%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.icon-card:hover .image-overlay {
+    opacity: 1;
 }
 `;
