@@ -38,17 +38,14 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
     }, 300);
 });
 
-// Format filter - multi-select
-let formatChangeTimeout;
-document.getElementById('formatFilter').addEventListener('change', (e) => {
-    clearTimeout(formatChangeTimeout);
-    formatChangeTimeout = setTimeout(() => {
-        const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
-        vscode.postMessage({
-            command: 'filterByFormat',
-            formats: selected
-        });
-    }, 300);
+// Format filter - multi-select with confirmation
+document.getElementById('applyFormatFilter').addEventListener('click', () => {
+    const selectedOptions = document.getElementById('formatFilter').selectedOptions;
+    const selected = Array.from(selectedOptions).map(opt => opt.value);
+    vscode.postMessage({
+        command: 'filterByFormat',
+        formats: selected
+    });
 });
 
 // Directory filter
@@ -112,14 +109,13 @@ function openPreviewModal(card) {
     const modal = document.getElementById('previewModal');
     const img = document.getElementById('previewImage');
     const fileName = document.getElementById('previewFileName');
-    const fileSize = document.getElementById('previewFileSize');
+    const fileExt = card.querySelector('.icon-size')?.textContent || '';
 
     if (!card) return;
 
     // 获取图片 URI (需要通过扩展传递)
     img.src = card.querySelector('img')?.src || '';
-    fileName.textContent = card.dataset.name;
-    fileSize.textContent = card.querySelector('.icon-size')?.textContent || '';
+    fileName.textContent = card.dataset.name + (fileExt ? '.' + fileExt : '');
 
     modal.classList.add('visible');
     document.body.style.overflow = 'hidden';

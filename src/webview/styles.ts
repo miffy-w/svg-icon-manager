@@ -8,10 +8,8 @@ export function getStyles(iconSize: number): string {
 ${baseStyles}
 ${headerStyles}
 ${filterStyles}
-${formatFilterStyles}
 ${gridStyles}
 ${cardStyles(iconSize)}
-${imageOverlayStyles}
 ${scrollbarStyles}
 ${emptyStateStyles}
 ${modalStyles}
@@ -41,12 +39,13 @@ const headerStyles = `
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-block-end: 16px;
     flex-wrap: wrap;
 }
 
 .header h1 {
     font-size: 24px;
+    line-height: 39px;
     font-weight: 600;
     color: var(--vscode-foreground);
 }
@@ -62,7 +61,8 @@ const filterStyles = `
     display: flex;
     gap: 12px;
     flex: 1;
-    max-width: 600px;
+    max-width: 800px;
+    flex-wrap: wrap;
 }
 
 .search-box {
@@ -91,13 +91,64 @@ const filterStyles = `
     position: absolute;
     left: 10px;
     top: 50%;
-    line-height: 16px;
     transform: translateY(-50%);
     color: var(--vscode-descriptionForeground);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 16px;
+    width: 16px;
+}
+
+.format-filter {
+    min-width: 120px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.format-filter select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--vscode-input-border);
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.format-filter select:focus {
+    outline: none;
+    border-color: var(--vscode-focusBorder);
+}
+
+.format-filter select option {
+    background-color: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+}
+
+.apply-btn {
+    padding: 6px 12px;
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: 1px solid var(--vscode-button-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    margin-left: 8px;
+    height: 32px;
+}
+
+.apply-btn:hover {
+    background-color: var(--vscode-button-hoverBackground);
 }
 
 .path-filter {
-    min-width: 200px;
+    min-width: 150px;
 }
 
 .path-filter select {
@@ -129,6 +180,8 @@ const filterStyles = `
     display: flex;
     align-items: center;
     gap: 6px;
+    height: 36px;
+    min-width: 80px;
 }
 
 .refresh-btn:hover {
@@ -143,7 +196,8 @@ const gridStyles = `
     gap: 16px;
     overflow-y: auto;
     flex: 1;
-    padding-right: 8px;
+    padding-block-start: 8px;
+    padding-inline-end: 8px;
     align-content: start;
     min-height: 0;
 }
@@ -155,7 +209,7 @@ function cardStyles(iconSize: number): string {
     background-color: var(--vscode-editor-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 8px;
-    padding: 16px;
+    padding: 48px 24px 24px 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -179,6 +233,8 @@ function cardStyles(iconSize: number): string {
     justify-content: center;
     background-color: var(--vscode-editor-background);
     border-radius: 8px;
+    position: relative;
+    overflow: hidden;
 }
 
 .icon-preview svg {
@@ -186,6 +242,42 @@ function cardStyles(iconSize: number): string {
     height: 100%;
     max-width: 64px;
     max-height: 64px;
+}
+
+.icon-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.icon-preview.image-preview {
+    cursor: pointer;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    cursor: zoom-in;
+    transition: opacity 0.2s ease;
+    border-radius: 8px;
+}
+
+.icon-preview.image-preview:hover .image-overlay {
+    opacity: 1;
+}
+
+.preview-placeholder {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    opacity: 0.5;
 }
 
 .icon-info {
@@ -285,90 +377,55 @@ const emptyStateStyles = `
 }
 `;
 
-const formatFilterStyles = `
-.format-filters {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-}
-
-.format-filter {
-    padding: 6px 12px;
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    color: var(--vscode-input-foreground);
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.format-filter.active {
-    background-color: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border-color: var(--vscode-button-background);
-}
-
-.format-filter:hover {
-    border-color: var(--vscode-focusBorder);
-}
-
-.format-filter-icon {
-    font-size: 14px;
-}
-
-.format-filter-count {
-    font-size: 10px;
-    color: var(--vscode-descriptionForeground);
-    background-color: var(--vscode-editor-background);
-    padding: 1px 4px;
-    border-radius: 3px;
-}
-`;
-
 const modalStyles = `
-.modal-overlay {
+.preview-modal {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
+    z-index: 1000;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(2px);
 }
 
-.modal {
+.preview-modal.visible {
+    display: flex;
+}
+
+.modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
     background-color: var(--vscode-editor-background);
     border-radius: 8px;
-    padding: 24px;
-    max-width: 90%;
-    max-height: 90%;
-    overflow: auto;
-    position: relative;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    margin: 20px;
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    width: 100%;
+    margin-bottom: 16px;
+    gap: 16px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--vscode-editor-border);
-}
-
-.modal-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--vscode-foreground);
 }
 
 .modal-close {
@@ -376,106 +433,41 @@ const modalStyles = `
     height: 32px;
     border: none;
     border-radius: 4px;
-    background-color: var(--vscode-editor-background);
+    background-color: var(--vscode-toolbar-hoverBackground);
     color: var(--vscode-foreground);
     cursor: pointer;
+    font-size: 18px;
+    line-height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s ease;
 }
 
 .modal-close:hover {
-    background-color: var(--vscode-toolbar-hoverBackground);
+    background-color: var(--vscode-button-hoverBackground);
 }
 
-.modal-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-}
-
-.modal-image-container {
-    position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: var(--vscode-editor-background);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.modal-image {
+.preview-image {
     max-width: 100%;
-    max-height: 500px;
-    display: block;
-}
-
-.modal-image-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to bottom,
-        rgba(0, 0, 0, 0) 0%,
-        rgba(0, 0, 0, 0.3) 100%);
-    pointer-events: none;
+    max-height: calc(90vh - 140px);
+    object-fit: contain;
+    border-radius: 4px;
 }
 
 .modal-info {
-    text-align: center;
-    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
 }
 
-.modal-image-name {
-    font-size: 18px;
+.file-name {
     font-weight: 600;
     color: var(--vscode-foreground);
-    margin-bottom: 8px;
 }
 
-.modal-image-details {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 12px;
-}
-
-.modal-detail {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-.modal-detail-label {
-    font-size: 12px;
+.file-size {
     color: var(--vscode-descriptionForeground);
-}
-
-.modal-detail-value {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--vscode-foreground);
-}
-`;
-
-const imageOverlayStyles = `
-.image-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to bottom,
-        rgba(0, 0, 0, 0) 0%,
-        rgba(0, 0, 0, 0.3) 100%);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.icon-card:hover .image-overlay {
-    opacity: 1;
 }
 `;

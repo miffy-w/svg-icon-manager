@@ -31,7 +31,10 @@ const actionIcons = {
 /**
  * Render an action button
  */
-function actionButton(action: "copyName" | "copyImport" | "openFile", title: string): string {
+function actionButton(
+  action: "copyName" | "copyImport" | "openFile",
+  title: string,
+): string {
   return `<button class="action-btn" data-action="${action}" title="${title}">
     ${actionIcons[action]}
   </button>`;
@@ -43,13 +46,13 @@ function actionButton(action: "copyName" | "copyImport" | "openFile", title: str
 export function renderIconCard(
   asset: ImageAsset,
   webview?: vscode.Webview,
-  workspaceRoot?: string
+  workspaceRoot?: string,
 ): string {
-  const isImage = asset.format !== 'svg';
+  const isImage = asset.format !== "svg";
 
   // 生成预览内容
   let previewContent: string;
-  if (asset.format === 'svg' && asset.content) {
+  if (asset.format === "svg" && asset.content) {
     // SVG 内联渲染
     previewContent = asset.content;
   } else if (webview && workspaceRoot) {
@@ -62,13 +65,15 @@ export function renderIconCard(
   }
 
   // 图片卡片添加点击预览功能
-  const previewClickAttr = isImage ? `data-preview="true" data-src="${asset.path}"` : '';
+  const previewClickAttr = isImage
+    ? `data-preview="true" data-src="${asset.path}"`
+    : "";
 
   return `
     <div class="icon-card" data-path="${asset.path}" data-name="${asset.name}" data-relative="${asset.relativePath}" data-format="${asset.format}">
-      <div class="icon-preview ${isImage ? 'image-preview' : ''}" ${previewClickAttr}>
+      <div class="icon-preview ${isImage ? "image-preview" : ""}" ${previewClickAttr}>
         ${previewContent}
-        ${isImage ? `<div class="image-overlay">${actionIcons.zoomIn}</div>` : ''}
+        ${isImage ? `<div class="image-overlay"></div>` : ""}
       </div>
       <div class="icon-info">
         <div class="icon-name" title="${asset.name}">${asset.name}</div>
@@ -90,9 +95,11 @@ export function renderIconCard(
 export function renderIconCards(
   assets: ImageAsset[],
   webview?: vscode.Webview,
-  workspaceRoot?: string
+  workspaceRoot?: string,
 ): string {
-  return assets.map(asset => renderIconCard(asset, webview, workspaceRoot)).join("");
+  return assets
+    .map((asset) => renderIconCard(asset, webview, workspaceRoot))
+    .join("");
 }
 
 /**
@@ -114,10 +121,19 @@ export function renderDirectoryOptions(
  * Render format filter options
  */
 export function renderFormatOptions(selectedFormats: ImageFormat[]): string {
-  const formats: ImageFormat[] = ['svg', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'ico', 'bmp'];
+  const formats: ImageFormat[] = [
+    "svg",
+    "png",
+    "jpg",
+    "webp",
+    "gif",
+    "ico",
+    "bmp",
+  ];
   return formats
-    .map(format =>
-      `<option value="${format}" ${selectedFormats.includes(format) ? "selected" : ""}>${format.toUpperCase()}</option>`
+    .map(
+      (format) =>
+        `<option value="${format}" ${selectedFormats.includes(format) ? "selected" : ""}>${format.toUpperCase()}</option>`,
     )
     .join("");
 }
@@ -140,12 +156,11 @@ function renderPreviewModal(): string {
     <div class="preview-modal" id="previewModal">
       <div class="modal-backdrop"></div>
       <div class="modal-content">
-        <button class="modal-close" id="modalClose">✕</button>
-        <img class="preview-image" id="previewImage" src="" alt="Preview" />
-        <div class="modal-info">
+        <div class="modal-header">
           <span class="file-name" id="previewFileName"></span>
-          <span class="file-size" id="previewFileSize"></span>
+          <button class="modal-close" id="modalClose">✕</button>
         </div>
+        <img class="preview-image" id="previewImage" src="" alt="Preview" />
       </div>
     </div>
   `;
@@ -186,7 +201,7 @@ ${styles}
         <select id="formatFilter" multiple size="1">
           ${formatOptions}
         </select>
-        <span class="format-hint">Ctrl+click to multi-select</span>
+        <button id="applyFormatFilter" class="apply-btn">Apply</button>
       </div>
       <div class="path-filter">
         <select id="pathFilter">
