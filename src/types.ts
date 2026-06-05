@@ -1,12 +1,19 @@
 /**
- * SVG Icon type definition
+ * 支持的图片格式
  */
-export interface SvgIcon {
-  name: string;
-  path: string;
-  relativePath: string;
+export type ImageFormat = 'svg' | 'png' | 'jpg' | 'jpeg' | 'webp' | 'gif' | 'ico' | 'bmp';
+
+/**
+ * 图片资源类型定义
+ */
+export interface ImageAsset {
+  name: string;           // 文件名（不含扩展名）
+  path: string;           // 绝对路径
+  relativePath: string;   // 相对工作区的路径
+  format: ImageFormat;    // 文件格式
   size: { width: number; height: number };
-  content: string;
+  fileSize?: number;      // 文件大小（字节）
+  content?: string;       // SVG 内联内容（仅 SVG 有）
 }
 
 /**
@@ -15,6 +22,7 @@ export interface SvgIcon {
 export type WebviewCommand =
   | "search"
   | "filterByPath"
+  | "filterByFormat"
   | "copyName"
   | "copyImport"
   | "openFile"
@@ -26,6 +34,7 @@ export interface WebviewMessage {
   query?: string;
   path?: string;
   name?: string;
+  formats?: ImageFormat[];
 }
 
 export interface UpdateIconsMessage {

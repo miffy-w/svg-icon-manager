@@ -19,9 +19,11 @@ window.addEventListener('message', event => {
 
 function handleUpdateIcons(message) {
     document.getElementById('iconsGrid').innerHTML = message.icons;
-    document.querySelector('.header-stats').innerHTML = 
-       \`\${message.count} \${message.count === 1 ? 'icon' : 'icons'}\` +
+    document.querySelector('.header-stats').innerHTML =
+       \`\${message.count} \${message.count === 1 ? 'asset' : 'assets'}\` +
         (message.count !== message.total ? \` (filtered from \${message.total})\` : '');
+    // 重新绑定图片点击事件
+    bindImagePreviewEvents();
 }
 
 // Search with debounce
@@ -36,6 +38,21 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
     }, 300);
 });
 
+// Format filter - chip click toggles and filters immediately
+document.getElementById('formatFilter').addEventListener('change', (e) => {
+    if (e.target.matches('input[type="checkbox"]')) {
+        // Toggle chip visual state
+        e.target.closest('.format-chip').classList.toggle('active', e.target.checked);
+        // Immediately send filter
+        const checkboxes = document.querySelectorAll('#formatFilter input[type="checkbox"]:checked');
+        const selected = Array.from(checkboxes).map(cb => cb.value);
+        vscode.postMessage({
+            command: 'filterByFormat',
+            formats: selected
+        });
+    }
+});
+
 // Directory filter
 document.getElementById('pathFilter').addEventListener('change', (e) => {
     vscode.postMessage({
@@ -44,20 +61,25 @@ document.getElementById('pathFilter').addEventListener('change', (e) => {
     });
 });
 
-// Refresh button
-document.getElementById('refreshBtn').addEventListener('click', () => {
+// Refresh button — spin icon on click for visual feedback
+document.getElementById('refreshBtn').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    // 先移除再强制重排，确保 animation 每次都能重新触发
+    btn.classList.remove('spinning');
+    void btn.offsetWidth;
+    btn.classList.add('spinning');
     vscode.postMessage({ command: 'refresh' });
 });
 
 // Icon card actions
 document.getElementById('iconsGrid').addEventListener('click', (e) => {
     const actionBtn = e.target.closest('.action-btn');
-    
+
     if (actionBtn) {
         e.stopPropagation();
         const action = actionBtn.dataset.action;
         const card = actionBtn.closest('.icon-card');
-        
+
         switch (action) {
             case 'copyName':
                 vscode.postMessage({
@@ -68,7 +90,7 @@ document.getElementById('iconsGrid').addEventListener('click', (e) => {
             case 'copyImport':
                 vscode.postMessage({
                     command: 'copyImport',
-                    path: card.dataset.path,
+                    path: card.dataset.relative,
                     name: card.dataset.name
                 });
                 break;
@@ -81,5 +103,60 @@ document.getElementById('iconsGrid').addEventListener('click', (e) => {
         }
     }
 });
+
+// Image preview functionality
+function bindImagePreviewEvents() {
+    const imagePreviews = document.querySelectorAll('.icon-preview[data-preview="true"]');
+    imagePreviews.forEach(preview => {
+        preview.addEventListener('click', (e) => {
+            if (e.target.closest('.action-btn')) return;
+            openPreviewModal(preview.closest('.icon-card'));
+        });
+    });
+}
+
+function openPreviewModal(card) {
+    const modal = document.getElementById('previewModal');
+    const img = document.getElementById('previewImage');
+    const fileName = document.getElementById('previewFileName');
+    const fileSize = document.getElementById('previewFileSize');
+
+    if (!card) return;
+
+    // 获取图片 URI (需要通过扩展传递)
+    img.src = card.querySelector('img')?.src || '';
+    // 从 relativePath 提取完整文件名（含扩展名），如 "logo.png"
+    fileName.textContent = card.dataset.relative.split('/').pop();
+    // 文件大小（由模板预格式化）
+    const sizeBytes = parseInt(card.dataset.filesize);
+    fileSize.textContent = sizeBytes > 0 ? formatFileSize(sizeBytes) : '';
+
+    modal.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function closePreviewModal() {
+    const modal = document.getElementById('previewModal');
+    modal.classList.remove('visible');
+    document.body.style.overflow = '';
+}
+
+// Modal close events
+document.getElementById('modalClose').addEventListener('click', closePreviewModal);
+document.querySelector('.modal-backdrop').addEventListener('click', closePreviewModal);
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closePreviewModal();
+    }
+});
+
+// Initial bind
+bindImagePreviewEvents();
 `;
 }

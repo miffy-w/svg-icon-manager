@@ -12,6 +12,7 @@ ${gridStyles}
 ${cardStyles(iconSize)}
 ${scrollbarStyles}
 ${emptyStateStyles}
+${modalStyles}
 `;
 }
 
@@ -38,45 +39,82 @@ const headerStyles = `
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-block-end: 16px;
     flex-wrap: wrap;
 }
 
 .header h1 {
     font-size: 24px;
+    line-height: 39px;
     font-weight: 600;
     color: var(--vscode-foreground);
+    flex-shrink: 0;
 }
 
 .header-stats {
     color: var(--vscode-descriptionForeground);
     font-size: 14px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.refresh-btn {
+    padding: 6px 16px;
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.refresh-btn:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.refresh-btn.spinning svg {
+    animation: spin 0.6s linear;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 `;
 
 const filterStyles = `
 .filters {
     display: flex;
-    gap: 12px;
-    flex: 1;
-    max-width: 600px;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .search-box {
-    flex: 1;
-    min-width: 200px;
+    flex: 1 1 180px;
+    min-width: 140px;
+    max-width: 320px;
     position: relative;
 }
 
 .search-box input {
     width: 100%;
-    padding: 8px 12px 8px 36px;
+    padding: 6px 12px 6px 32px;
     border: 1px solid var(--vscode-input-border);
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 13px;
     font-family: inherit;
+    height: 32px;
 }
 
 .search-box input:focus {
@@ -86,27 +124,70 @@ const filterStyles = `
 
 .search-icon {
     position: absolute;
-    left: 10px;
+    left: 8px;
     top: 50%;
-    line-height: 16px;
     transform: translateY(-50%);
     color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 16px;
+    width: 16px;
+}
+
+.format-filter {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.format-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 14px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    user-select: none;
+    color: var(--vscode-descriptionForeground);
+    background-color: var(--vscode-input-background);
+    transition: all 0.15s ease;
+    line-height: 1.4;
+}
+
+.format-chip input[type="checkbox"] {
+    display: none;
+}
+
+.format-chip:hover {
+    border-color: var(--vscode-focusBorder);
+    color: var(--vscode-foreground);
+}
+
+.format-chip.active {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: var(--vscode-button-border);
 }
 
 .path-filter {
-    min-width: 200px;
+    flex-shrink: 0;
 }
 
 .path-filter select {
-    width: 100%;
-    padding: 8px 12px;
+    padding: 6px 12px;
     border: 1px solid var(--vscode-input-border);
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 13px;
     font-family: inherit;
     cursor: pointer;
+    height: 32px;
 }
 
 .path-filter select:focus {
@@ -114,22 +195,12 @@ const filterStyles = `
     border-color: var(--vscode-focusBorder);
 }
 
-.refresh-btn {
-    padding: 8px 16px;
-    background-color: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-family: inherit;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.refresh-btn:hover {
-    background-color: var(--vscode-button-hoverBackground);
+/* 小屏幕适配：filters 行内元素自然换行 */
+@media (max-width: 500px) {
+    .search-box {
+        flex-basis: 100%;
+        max-width: none;
+    }
 }
 `;
 
@@ -140,7 +211,8 @@ const gridStyles = `
     gap: 16px;
     overflow-y: auto;
     flex: 1;
-    padding-right: 8px;
+    padding-block-start: 8px;
+    padding-inline-end: 8px;
     align-content: start;
     min-height: 0;
 }
@@ -152,7 +224,7 @@ function cardStyles(iconSize: number): string {
     background-color: var(--vscode-editor-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 8px;
-    padding: 16px;
+    padding: 48px 24px 24px 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -165,7 +237,7 @@ function cardStyles(iconSize: number): string {
 .icon-card:hover {
     border-color: var(--vscode-focusBorder);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px var(--vscode-widget-shadow);
 }
 
 .icon-preview {
@@ -176,6 +248,8 @@ function cardStyles(iconSize: number): string {
     justify-content: center;
     background-color: var(--vscode-editor-background);
     border-radius: 8px;
+    position: relative;
+    overflow: hidden;
 }
 
 .icon-preview svg {
@@ -183,6 +257,42 @@ function cardStyles(iconSize: number): string {
     height: 100%;
     max-width: 64px;
     max-height: 64px;
+}
+
+.icon-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.icon-preview.image-preview {
+    cursor: pointer;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    cursor: zoom-in;
+    transition: opacity 0.2s ease;
+    border-radius: 8px;
+}
+
+.icon-preview.image-preview:hover .image-overlay {
+    opacity: 1;
+}
+
+.preview-placeholder {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    opacity: 0.5;
 }
 
 .icon-info {
@@ -209,7 +319,7 @@ function cardStyles(iconSize: number): string {
     margin-bottom: 2px;
 }
 
-.icon-size {
+.icon-meta {
     font-size: 11px;
     color: var(--vscode-descriptionForeground);
 }
@@ -279,5 +389,106 @@ const emptyStateStyles = `
     height: 64px;
     margin-bottom: 16px;
     opacity: 0.5;
+}
+`;
+
+const modalStyles = `
+.preview-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-modal.visible {
+    display: flex;
+}
+
+.modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--vscode-editor-background);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    margin: 20px;
+}
+
+.modal-header {
+    display: flex;
+    column-gap: 24px;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--vscode-editor-border);
+}
+
+.modal-header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    min-width: 0;
+}
+
+.file-name {
+    font-weight: 600;
+    color: var(--vscode-foreground);
+    font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-size {
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--vscode-toolbar-hoverBackground);
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.modal-close:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: calc(90vh - 100px);
+    object-fit: contain;
+    border-radius: 4px;
 }
 `;

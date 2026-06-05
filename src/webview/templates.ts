@@ -1,4 +1,5 @@
-import { SvgIcon } from "../types";
+import * as vscode from "vscode";
+import { ImageAsset, ImageFormat } from "../types";
 
 /**
  * SVG icons for action buttons
@@ -14,37 +15,85 @@ const actionIcons = {
   </svg>`,
 
   openFile: `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
   </svg>`,
 
   refresh: `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
     <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
     <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
   </svg>`,
+
+  zoomIn: `<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8zm5-1a1 1 0 011-1h1V5a1 1 0 112 0v1h1a1 1 0 110 2H9v1a1 1 0 11-2 0V8H6a1 1 0 01-1-1z" clip-rule="evenodd"/>
+  </svg>`,
 };
 
 /**
  * Render an action button
  */
-function actionButton(action: "copyName" | "copyImport" | "openFile", title: string): string {
+function actionButton(
+  action: "copyName" | "copyImport" | "openFile",
+  title: string,
+): string {
   return `<button class="action-btn" data-action="${action}" title="${title}">
     ${actionIcons[action]}
   </button>`;
 }
 
 /**
- * Render a single icon card
+ * Format file size in bytes to human-readable string
  */
-export function renderIconCard(icon: SvgIcon): string {
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
+ * Render a single asset card
+ */
+export function renderIconCard(
+  asset: ImageAsset,
+  webview?: vscode.Webview,
+  workspaceRoot?: string,
+): string {
+  const isImage = asset.format !== "svg";
+
+  // 生成预览内容
+  let previewContent: string;
+  if (asset.format === "svg" && asset.content) {
+    // SVG 内联渲染
+    previewContent = asset.content;
+  } else if (webview && workspaceRoot) {
+    // 图片使用 webview URI
+    const fileUri = vscode.Uri.file(asset.path);
+    const webviewUri = webview.asWebviewUri(fileUri);
+    previewContent = `<img src="${webviewUri}" alt="${asset.name}" loading="lazy" />`;
+  } else {
+    previewContent = `<span class="preview-placeholder">${asset.format.toUpperCase()}</span>`;
+  }
+
+  // 图片卡片添加点击预览功能
+  const previewClickAttr = isImage
+    ? `data-preview="true" data-src="${asset.path}"`
+    : "";
+
+  // 尺寸信息文本
+  const dimText = asset.size.width > 0
+    ? `${asset.size.width}×${asset.size.height}`
+    : asset.format.toUpperCase();
+  const fileSizeText = asset.fileSize ? formatFileSize(asset.fileSize) : "";
+
   return `
-    <div class="icon-card" data-path="${icon.path}" data-name="${icon.name}" data-relative="${icon.relativePath}">
-      <div class="icon-preview">
-        ${icon.content}
+    <div class="icon-card" data-path="${asset.path}" data-name="${asset.name}" data-relative="${asset.relativePath}" data-format="${asset.format}" data-filesize="${asset.fileSize || ""}">
+      <div class="icon-preview ${isImage ? "image-preview" : ""}" ${previewClickAttr}>
+        ${previewContent}
+        ${isImage ? `<div class="image-overlay"></div>` : ""}
       </div>
       <div class="icon-info">
-        <div class="icon-name" title="${icon.name}">${icon.name}</div>
-        <div class="icon-path" title="${icon.relativePath}">${icon.relativePath}</div>
-        <div class="icon-size">${icon.size.width}×${icon.size.height}</div>
+        <div class="icon-name" title="${asset.name}">${asset.name}</div>
+        <div class="icon-path" title="${asset.relativePath}">${asset.relativePath}</div>
+        <div class="icon-meta">${dimText}${fileSizeText ? ` · ${fileSizeText}` : ""}</div>
       </div>
       <div class="card-actions">
         ${actionButton("copyName", "Copy Name")}
@@ -56,10 +105,16 @@ export function renderIconCard(icon: SvgIcon): string {
 }
 
 /**
- * Render all icon cards
+ * Render all asset cards
  */
-export function renderIconCards(icons: SvgIcon[]): string {
-  return icons.map(renderIconCard).join("");
+export function renderIconCards(
+  assets: ImageAsset[],
+  webview?: vscode.Webview,
+  workspaceRoot?: string,
+): string {
+  return assets
+    .map((asset) => renderIconCard(asset, webview, workspaceRoot))
+    .join("");
 }
 
 /**
@@ -78,13 +133,58 @@ export function renderDirectoryOptions(
 }
 
 /**
+ * Render format filter chips (checkbox-based toggle UI)
+ */
+export function renderFormatOptions(selectedFormats: ImageFormat[]): string {
+  const formats: ImageFormat[] = [
+    "svg",
+    "png",
+    "jpg",
+    "webp",
+    "gif",
+    "ico",
+    "bmp",
+  ];
+  return formats
+    .map(
+      (format) =>
+        `<label class="format-chip ${selectedFormats.includes(format) ? "active" : ""}">
+          <input type="checkbox" value="${format}" ${selectedFormats.includes(format) ? "checked" : ""} />
+          ${format.toUpperCase()}
+        </label>`,
+    )
+    .join("");
+}
+
+/**
  * Render header stats text
  */
 export function renderStats(filteredCount: number, totalCount: number): string {
-  const iconText = filteredCount === 1 ? "icon" : "icons";
+  const assetText = filteredCount === 1 ? "asset" : "assets";
   const filteredText =
     filteredCount !== totalCount ? ` (filtered from ${totalCount})` : "";
-  return `${filteredCount} ${iconText}${filteredText}`;
+  return `${filteredCount} ${assetText}${filteredText}`;
+}
+
+/**
+ * Render preview modal HTML
+ */
+function renderPreviewModal(): string {
+  return `
+    <div class="preview-modal" id="previewModal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-header-left">
+            <span class="file-name" id="previewFileName"></span>
+            <span class="file-size" id="previewFileSize"></span>
+          </div>
+          <button class="modal-close" id="modalClose">✕</button>
+        </div>
+        <img class="preview-image" id="previewImage" src="" alt="Preview" />
+      </div>
+    </div>
+  `;
 }
 
 /**
@@ -95,6 +195,7 @@ export function getWebviewHtml(
   scripts: string,
   searchQuery: string,
   directoriesOptions: string,
+  formatOptions: string,
   cardsHtml: string,
   statsText: string,
 ): string {
@@ -103,19 +204,22 @@ export function getWebviewHtml(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
-  <title>SVG Icon Manager</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: blob: vscode-webview-resource: https: file:; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
+  <title>Image Asset Manager</title>
   <style>
 ${styles}
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>SVG Icons</h1>
+    <h1>Image Assets</h1>
     <div class="filters">
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Search icons..." value="${searchQuery}">
+        <input type="text" id="searchInput" placeholder="Search assets..." value="${searchQuery}">
+      </div>
+      <div class="format-filter" id="formatFilter">
+        ${formatOptions}
       </div>
       <div class="path-filter">
         <select id="pathFilter">
@@ -136,6 +240,8 @@ ${styles}
   <div class="icons-grid" id="iconsGrid">
     ${cardsHtml}
   </div>
+
+  ${renderPreviewModal()}
 
   <script>
 ${scripts}

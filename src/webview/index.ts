@@ -1,26 +1,28 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { SvgIcon, WebviewMessage } from "../types";
+import { ImageAsset, ImageFormat, WebviewMessage } from "../types";
 import { IconScanner } from "../scanner";
 import { getStyles } from "./styles";
 import { getScripts } from "./scripts";
 import {
   renderIconCards,
   renderDirectoryOptions,
+  renderFormatOptions,
   renderStats,
   getWebviewHtml,
 } from "./templates";
 
 /**
- * IconPanel - Manages the webview panel for displaying SVG icons
+ * IconPanel - Manages the webview panel for displaying image assets
  */
 export class IconPanel {
   private panel: vscode.WebviewPanel | undefined;
-  private icons: SvgIcon[] = [];
-  private filteredIcons: SvgIcon[] = [];
+  private assets: ImageAsset[] = [];
+  private filteredAssets: ImageAsset[] = [];
   private directories: string[] = [];
   private selectedDirectory: string = "";
   private searchQuery: string = "";
+  private selectedFormats: ImageFormat[] = ["svg"]; // 默认选中 svg
   private iconSize: number = 80;
 
   constructor(
@@ -29,6 +31,11 @@ export class IconPanel {
     private scanner: IconScanner,
   ) {
     this.loadConfig();
+  }
+
+  /** 获取当前工作区根目录（动态读取） */
+  private getWorkspaceRoot(): string | undefined {
+    return this.workspaceRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   }
 
   private loadConfig(): void {
@@ -42,6 +49,7 @@ export class IconPanel {
       return;
     }
 
+    const root = this.getWorkspaceRoot();
     this.panel = vscode.window.createWebviewPanel(
       "svgIconManager",
       "SVG Icon Manager",
@@ -49,7 +57,9 @@ export class IconPanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [],
+        localResourceRoots: root
+          ? [vscode.Uri.file(root)]
+          : [],
       },
     );
 
@@ -74,6 +84,11 @@ export class IconPanel {
           case "filterByPath":
             this.selectedDirectory = message.path || "";
             this.applyFilters();
+            break;
+          case "filterByFormat":
+            this.selectedFormats = message.formats || [];
+            // 格式变化需要重新扫描
+            await this.refresh();
             break;
           case "copyName":
             if (message.name) {
@@ -116,16 +131,18 @@ export class IconPanel {
 
   async refresh(): Promise<void> {
     this.loadConfig();
-    this.icons = await this.scanner.scan();
-    this.directories = this.extractDirectories(this.icons);
-    this.applyFilters();
+    // 根据选中的格式扫描，如果未选中任何格式则扫描全部
+    const formatsToScan = this.selectedFormats.length > 0 ? this.selectedFormats : undefined;
+    this.assets = await this.scanner.scan(formatsToScan);
+    this.directories = this.extractDirectories(this.assets);
+    this.applyFilters(true); // skipUpdate: updateFull() 会重建整个页面
     this.updateFull();
   }
 
-  private extractDirectories(icons: SvgIcon[]): string[] {
+  private extractDirectories(assets: ImageAsset[]): string[] {
     const dirSet = new Set<string>();
-    icons.forEach((icon) => {
-      const dir = path.dirname(icon.relativePath);
+    assets.forEach((asset) => {
+      const dir = path.dirname(asset.relativePath);
       if (dir !== ".") {
         dirSet.add(dir);
       }
@@ -133,13 +150,13 @@ export class IconPanel {
     return Array.from(dirSet).sort();
   }
 
-  private applyFilters(): void {
-    let result = [...this.icons];
+  private applyFilters(skipUpdate: boolean = false): void {
+    let result = [...this.assets];
 
     // Apply directory filter
     if (this.selectedDirectory) {
-      result = result.filter((icon) => {
-        const dir = path.dirname(icon.relativePath);
+      result = result.filter((asset) => {
+        const dir = path.dirname(asset.relativePath);
         return dir === this.selectedDirectory;
       });
     }
@@ -148,14 +165,24 @@ export class IconPanel {
     if (this.searchQuery.trim()) {
       const lowerQuery = this.searchQuery.toLowerCase();
       result = result.filter(
-        (icon) =>
-          icon.name.toLowerCase().includes(lowerQuery) ||
-          icon.relativePath.toLowerCase().includes(lowerQuery),
+        (asset) =>
+          asset.name.toLowerCase().includes(lowerQuery) ||
+          asset.relativePath.toLowerCase().includes(lowerQuery),
       );
     }
 
-    this.filteredIcons = result;
-    this.updateIcons();
+    this.filteredAssets = result;
+    if (!skipUpdate) {
+      this.updateIcons();
+    }
+  }
+
+  private getWebviewUri(filePath: string): vscode.Uri | undefined {
+    if (!this.panel || !this.getWorkspaceRoot()) {
+      return undefined;
+    }
+    const fileUri = vscode.Uri.file(filePath);
+    return this.panel.webview.asWebviewUri(fileUri);
   }
 
   private updateIcons(): void {
@@ -163,13 +190,13 @@ export class IconPanel {
       return;
     }
 
-    const cardsHtml = renderIconCards(this.filteredIcons);
+    const cardsHtml = renderIconCards(this.filteredAssets, this.panel.webview, this.workspaceRoot);
 
     this.panel.webview.postMessage({
       command: "updateIcons",
       icons: cardsHtml,
-      count: this.filteredIcons.length,
-      total: this.icons.length,
+      count: this.filteredAssets.length,
+      total: this.assets.length,
     });
   }
 
@@ -180,18 +207,20 @@ export class IconPanel {
 
     const styles = getStyles(this.iconSize);
     const scripts = getScripts();
-    const cardsHtml = renderIconCards(this.filteredIcons);
+    const cardsHtml = renderIconCards(this.filteredAssets, this.panel.webview, this.workspaceRoot);
     const directoriesOptions = renderDirectoryOptions(
       this.directories,
       this.selectedDirectory,
     );
-    const statsText = renderStats(this.filteredIcons.length, this.icons.length);
+    const formatOptions = renderFormatOptions(this.selectedFormats);
+    const statsText = renderStats(this.filteredAssets.length, this.assets.length);
 
     this.panel.webview.html = getWebviewHtml(
       styles,
       scripts,
       this.searchQuery,
       directoriesOptions,
+      formatOptions,
       cardsHtml,
       statsText,
     );
@@ -199,11 +228,23 @@ export class IconPanel {
 
   private async copyName(name: string): Promise<void> {
     await vscode.env.clipboard.writeText(name);
-    vscode.window.showInformationMessage("Icon name copied to clipboard!");
+    vscode.window.showInformationMessage("Asset name copied to clipboard!");
   }
 
-  private async copyImport(filePath: string, name: string): Promise<void> {
-    const importCode = `import ${name.replace(/[^a-zA-Z0-9]/g, "")} from '${filePath}';`;
+  private async copyImport(relativePath: string, name: string): Promise<void> {
+    // 保留合法 JS 标识符字符，用 _ 替换非法字符
+    let sanitizedName = name.replace(/[^a-zA-Z0-9_$]/g, "_");
+    // 不能以数字开头
+    if (/^\d/.test(sanitizedName)) {
+      sanitizedName = "_" + sanitizedName;
+    }
+    // 空字符串回退
+    if (!sanitizedName) {
+      sanitizedName = "Asset";
+    }
+    // 确保路径以 ./ 开头
+    const normalizedPath = relativePath.startsWith(".") ? relativePath : "./" + relativePath;
+    const importCode = `import ${sanitizedName} from '${normalizedPath}';`;
     await vscode.env.clipboard.writeText(importCode);
     vscode.window.showInformationMessage("Import code copied to clipboard!");
   }

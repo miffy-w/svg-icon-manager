@@ -1,8 +1,8 @@
 {
   "name": "svg-icon-manager",
-  "displayName": "SVG Icon Manager",
-  "description": "Scan, preview, and manage all SVG icons in your workspace with a beautiful card-based gallery",
-  "version": "1.1.4",
+  "displayName": "Image Asset Manager",
+  "description": "Scan, preview, and manage all image assets (SVG, PNG, JPG, WebP, GIF, ICO, BMP) in your workspace with a beautiful card-based gallery",
+  "version": "1.2.0",
   "publisher": "svg-icon-manager",
   "author": "miffy-w",
   "license": "MIT",
@@ -19,15 +19,23 @@
   },
   "categories": [
     "Other",
-    "Visualization"
+    "Visualization",
+    "Images"
   ],
   "keywords": [
     "svg",
     "icon",
+    "image",
+    "asset",
     "preview",
     "gallery",
     "manager",
-    "icons",
+    "png",
+    "jpg",
+    "webp",
+    "gif",
+    "ico",
+    "bmp",
     "assets"
   ],
   "icon": "resources/icon.png",
@@ -39,13 +47,13 @@
     "commands": [
       {
         "command": "svgIconManager.show",
-        "title": "Show SVG Icon Manager",
-        "category": "SVG Icon Manager"
+        "title": "Show Image Asset Manager",
+        "category": "Image Asset Manager"
       },
       {
         "command": "svgIconManager.refresh",
-        "title": "Refresh Icons",
-        "category": "SVG Icon Manager"
+        "title": "Refresh Assets",
+        "category": "Image Asset Manager"
       }
     ],
     "keybindings": [
@@ -56,7 +64,7 @@
       }
     ],
     "configuration": {
-      "title": "SVG Icon Manager",
+      "title": "Image Asset Manager",
       "properties": {
         "svgIconManager.ignorePatterns": {
           "type": "array",
@@ -68,14 +76,14 @@
             "build",
             "coverage"
           ],
-          "description": "Directory patterns to ignore when scanning for SVG files"
+          "description": "Directory patterns to ignore when scanning (supports glob patterns like **/test/** or exact names like node_modules)"
         },
         "svgIconManager.iconSize": {
           "type": "number",
           "default": 80,
           "minimum": 48,
           "maximum": 128,
-          "description": "Size of icon preview in pixels"
+          "description": "Size of asset preview in pixels"
         }
       }
     }
@@ -89,12 +97,17 @@
     "publish": "npx vsce publish"
   },
   "devDependencies": {
+    "@types/image-size": "^0.7.0",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "@vscode/vsce": "^2.22.0",
     "eslint": "^8.0.0",
-    "typescript": "^5.0.0",
-    "@vscode/vsce": "^2.22.0"
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "image-size": "^2.0.2",
+    "minimatch": "^10.2.5"
   }
 }
