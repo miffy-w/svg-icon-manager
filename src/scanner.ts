@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
+import { minimatch } from "minimatch";
+import { imageSize } from "image-size";
 import { ImageAsset, ImageFormat } from "./types";
 
 /**
@@ -31,8 +33,16 @@ export class IconScanner {
   private assets: ImageAsset[] = [];
   private ignorePatterns: string[] = [];
 
-  constructor(private workspaceRoot: string | undefined) {
+  constructor(private workspaceRoot?: string) {
     this.loadConfig();
+  }
+
+  /**
+   * 获取当前工作区根目录（动态读取，支持工作区切换）
+   */
+  private getWorkspaceRoot(): string | undefined {
+    // 优先用传入的，回退到 VS Code API
+    return this.workspaceRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   }
 
   private loadConfig(): void {
@@ -55,12 +65,13 @@ export class IconScanner {
     this.assets = [];
     this.loadConfig();
 
-    if (!this.workspaceRoot) {
+    const workspaceRoot = this.getWorkspaceRoot();
+    if (!workspaceRoot) {
       return this.assets;
     }
 
     const targetFormats = formats || SUPPORTED_FORMATS;
-    const files = await this.findImageFiles(this.workspaceRoot, targetFormats);
+    const files = await this.findImageFiles(workspaceRoot, targetFormats);
 
     // 使用 Promise.allSettled 确保部分失败不影响整体
     const results = await Promise.allSettled(
@@ -84,6 +95,20 @@ export class IconScanner {
     return [...SUPPORTED_FORMATS];
   }
 
+  /**
+   * 检查给定路径是否匹配任一忽略模式
+   */
+  private shouldIgnore(relativePath: string, entryName: string): boolean {
+    return this.ignorePatterns.some(pattern => {
+      // 精确目录名匹配（向后兼容）
+      if (pattern === entryName) {
+        return true;
+      }
+      // glob 模式匹配（如 **/test/**、*.generated.*）
+      return minimatch(relativePath, pattern, { dot: true, matchBase: true });
+    });
+  }
+
   private async findImageFiles(
     dir: string,
     formats: ImageFormat[],
@@ -101,8 +126,9 @@ export class IconScanner {
 
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
+        const relPath = path.relative(this.getWorkspaceRoot()!, fullPath).replace(/\\/g, "/");
 
-        if (this.ignorePatterns.includes(entry.name)) {
+        if (this.shouldIgnore(relPath, entry.name)) {
           continue;
         }
 
@@ -141,13 +167,15 @@ export class IconScanner {
         return null;
       }
 
-      const relativePath = path.relative(this.workspaceRoot!, filePath);
+      const relativePath = path.relative(this.getWorkspaceRoot()!, filePath);
       const name = path.basename(filePath, ext);
+      const stat = await fs.promises.stat(filePath);
 
-      // SVG 特殊处理：读取内容用于内联渲染
+      // SVG 特殊处理：读取内容用于内联渲染（需清洗防止 XSS）
       if (format === 'svg') {
-        const content = await fs.promises.readFile(filePath, 'utf-8');
-        const size = this.extractSvgSize(content);
+        const rawContent = await fs.promises.readFile(filePath, 'utf-8');
+        const content = this.sanitizeSvg(rawContent);
+        const size = this.extractSvgSize(rawContent);
 
         return {
           name,
@@ -155,12 +183,13 @@ export class IconScanner {
           relativePath: relativePath.replace(/\\/g, "/"),
           format,
           size,
+          fileSize: stat.size,
           content,
         };
       }
 
-      // 其他图片格式：只获取尺寸，不读取内容
-      const size = await this.getImageSize();
+      // 其他图片格式：读取文件头获取实际尺寸
+      const size = await this.getImageSize(filePath);
 
       return {
         name,
@@ -168,6 +197,7 @@ export class IconScanner {
         relativePath: relativePath.replace(/\\/g, "/"),
         format,
         size,
+        fileSize: stat.size,
       };
     } catch (error) {
       console.error(`Error parsing image file ${filePath}:`, error);
@@ -190,7 +220,7 @@ export class IconScanner {
       /height=["'](\d+(?:\.\d+)?)(?:px|)?["']/i,
     );
     const viewBoxMatch = content.match(
-      /viewBox=["'](\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)["']/i,
+      /viewBox=["']\s*(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)\s*["']/i,
     );
 
     let width = 0;
@@ -208,12 +238,35 @@ export class IconScanner {
   }
 
   /**
-   * 获取图片尺寸（通过读取文件头）
-   * 简化实现：返回默认尺寸，实际可使用 image-size 库
+   * 清除 SVG 中的危险内容（XSS 防护）
+   * 移除 script 标签、事件处理器、foreignObject 等
    */
-  private async getImageSize(): Promise<{ width: number; height: number }> {
-    // TODO: 可集成 image-size 库获取实际尺寸
-    // 当前返回默认尺寸
+  private sanitizeSvg(content: string): string {
+    // 移除 <script> 元素及其内容
+    content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    // 移除事件处理器属性 (onclick, onload, onerror 等)
+    content = content.replace(/\s+on\w+\s*=\s*"[^"]*"/gi, '');
+    content = content.replace(/\s+on\w+\s*=\s*'[^']*'/gi, '');
+    content = content.replace(/\s+on\w+\s*=\s*[^\s>\/]+/gi, '');
+    // 移除 <foreignObject> 元素（可嵌入 HTML/JS）
+    content = content.replace(/<foreignObject\b[^<]*(?:(?!<\/foreignObject>)<[^<]*)*<\/foreignObject>/gi, '');
+    return content;
+  }
+
+  /**
+   * 获取图片尺寸（通过读取文件头）
+   * 使用 image-size 库，支持 PNG/JPG/WebP/GIF/ICO/BMP 等格式
+   */
+  private async getImageSize(filePath: string): Promise<{ width: number; height: number }> {
+    try {
+      const buffer = await fs.promises.readFile(filePath);
+      const dimensions = imageSize(buffer as unknown as Uint8Array);
+      if (dimensions && dimensions.width && dimensions.height) {
+        return { width: dimensions.width, height: dimensions.height };
+      }
+    } catch {
+      // 读取失败时返回默认值
+    }
     return { width: 0, height: 0 };
   }
 }

@@ -48,38 +48,73 @@ const headerStyles = `
     line-height: 39px;
     font-weight: 600;
     color: var(--vscode-foreground);
+    flex-shrink: 0;
 }
 
 .header-stats {
     color: var(--vscode-descriptionForeground);
     font-size: 14px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.refresh-btn {
+    padding: 6px 16px;
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.refresh-btn:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.refresh-btn.spinning svg {
+    animation: spin 0.6s linear;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 `;
 
 const filterStyles = `
 .filters {
     display: flex;
-    gap: 12px;
-    flex: 1;
-    max-width: 800px;
+    gap: 8px;
+    align-items: center;
     flex-wrap: wrap;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .search-box {
-    flex: 1;
-    min-width: 200px;
+    flex: 1 1 180px;
+    min-width: 140px;
+    max-width: 320px;
     position: relative;
 }
 
 .search-box input {
     width: 100%;
-    padding: 8px 12px 8px 36px;
+    padding: 6px 12px 6px 32px;
     border: 1px solid var(--vscode-input-border);
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 13px;
     font-family: inherit;
+    height: 32px;
 }
 
 .search-box input:focus {
@@ -89,11 +124,11 @@ const filterStyles = `
 
 .search-icon {
     position: absolute;
-    left: 10px;
+    left: 8px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--vscode-descriptionForeground);
-    font-size: 14px;
+    font-size: 13px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -102,65 +137,57 @@ const filterStyles = `
 }
 
 .format-filter {
-    min-width: 120px;
-    position: relative;
     display: flex;
     align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
 }
 
-.format-filter select {
-    width: 100%;
-    padding: 8px 12px;
+.format-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
     border: 1px solid var(--vscode-input-border);
-    background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border-radius: 4px;
-    font-size: 14px;
-    font-family: inherit;
-    cursor: pointer;
-}
-
-.format-filter select:focus {
-    outline: none;
-    border-color: var(--vscode-focusBorder);
-}
-
-.format-filter select option {
-    background-color: var(--vscode-dropdown-background);
-    color: var(--vscode-dropdown-foreground);
-}
-
-.apply-btn {
-    padding: 6px 12px;
-    background-color: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: 1px solid var(--vscode-button-border);
-    border-radius: 4px;
-    cursor: pointer;
+    border-radius: 14px;
     font-size: 12px;
     font-family: inherit;
-    margin-left: 8px;
-    height: 32px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--vscode-descriptionForeground);
+    background-color: var(--vscode-input-background);
+    transition: all 0.15s ease;
+    line-height: 1.4;
 }
 
-.apply-btn:hover {
-    background-color: var(--vscode-button-hoverBackground);
+.format-chip input[type="checkbox"] {
+    display: none;
+}
+
+.format-chip:hover {
+    border-color: var(--vscode-focusBorder);
+    color: var(--vscode-foreground);
+}
+
+.format-chip.active {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: var(--vscode-button-border);
 }
 
 .path-filter {
-    min-width: 150px;
+    flex-shrink: 0;
 }
 
 .path-filter select {
-    width: 100%;
-    padding: 8px 12px;
+    padding: 6px 12px;
     border: 1px solid var(--vscode-input-border);
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 13px;
     font-family: inherit;
     cursor: pointer;
+    height: 32px;
 }
 
 .path-filter select:focus {
@@ -168,24 +195,12 @@ const filterStyles = `
     border-color: var(--vscode-focusBorder);
 }
 
-.refresh-btn {
-    padding: 8px 16px;
-    background-color: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-family: inherit;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    height: 36px;
-    min-width: 80px;
-}
-
-.refresh-btn:hover {
-    background-color: var(--vscode-button-hoverBackground);
+/* 小屏幕适配：filters 行内元素自然换行 */
+@media (max-width: 500px) {
+    .search-box {
+        flex-basis: 100%;
+        max-width: none;
+    }
 }
 `;
 
@@ -222,7 +237,7 @@ function cardStyles(iconSize: number): string {
 .icon-card:hover {
     border-color: var(--vscode-focusBorder);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px var(--vscode-widget-shadow);
 }
 
 .icon-preview {
@@ -304,7 +319,7 @@ function cardStyles(iconSize: number): string {
     margin-bottom: 2px;
 }
 
-.icon-size {
+.icon-meta {
     font-size: 11px;
     color: var(--vscode-descriptionForeground);
 }
@@ -413,7 +428,7 @@ const modalStyles = `
     background-color: var(--vscode-editor-background);
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     margin: 20px;
 }
 
@@ -423,9 +438,30 @@ const modalStyles = `
     align-items: center;
     width: 100%;
     margin-bottom: 16px;
-    gap: 16px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--vscode-editor-border);
+}
+
+.modal-header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    min-width: 0;
+}
+
+.file-name {
+    font-weight: 600;
+    color: var(--vscode-foreground);
+    font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-size {
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+    flex-shrink: 0;
 }
 
 .modal-close {
@@ -441,6 +477,7 @@ const modalStyles = `
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .modal-close:hover {
@@ -449,25 +486,8 @@ const modalStyles = `
 
 .preview-image {
     max-width: 100%;
-    max-height: calc(90vh - 140px);
+    max-height: calc(90vh - 100px);
     object-fit: contain;
     border-radius: 4px;
-}
-
-.modal-info {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    color: var(--vscode-descriptionForeground);
-    font-size: 13px;
-}
-
-.file-name {
-    font-weight: 600;
-    color: var(--vscode-foreground);
-}
-
-.file-size {
-    color: var(--vscode-descriptionForeground);
 }
 `;

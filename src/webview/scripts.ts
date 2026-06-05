@@ -38,14 +38,19 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
     }, 300);
 });
 
-// Format filter - multi-select with confirmation
-document.getElementById('applyFormatFilter').addEventListener('click', () => {
-    const selectedOptions = document.getElementById('formatFilter').selectedOptions;
-    const selected = Array.from(selectedOptions).map(opt => opt.value);
-    vscode.postMessage({
-        command: 'filterByFormat',
-        formats: selected
-    });
+// Format filter - chip click toggles and filters immediately
+document.getElementById('formatFilter').addEventListener('change', (e) => {
+    if (e.target.matches('input[type="checkbox"]')) {
+        // Toggle chip visual state
+        e.target.closest('.format-chip').classList.toggle('active', e.target.checked);
+        // Immediately send filter
+        const checkboxes = document.querySelectorAll('#formatFilter input[type="checkbox"]:checked');
+        const selected = Array.from(checkboxes).map(cb => cb.value);
+        vscode.postMessage({
+            command: 'filterByFormat',
+            formats: selected
+        });
+    }
 });
 
 // Directory filter
@@ -56,8 +61,9 @@ document.getElementById('pathFilter').addEventListener('change', (e) => {
     });
 });
 
-// Refresh button
-document.getElementById('refreshBtn').addEventListener('click', () => {
+// Refresh button — spin icon on click for visual feedback
+document.getElementById('refreshBtn').addEventListener('click', (e) => {
+    e.currentTarget.classList.add('spinning');
     vscode.postMessage({ command: 'refresh' });
 });
 
@@ -80,7 +86,7 @@ document.getElementById('iconsGrid').addEventListener('click', (e) => {
             case 'copyImport':
                 vscode.postMessage({
                     command: 'copyImport',
-                    path: card.dataset.path,
+                    path: card.dataset.relative,
                     name: card.dataset.name
                 });
                 break;
@@ -109,16 +115,26 @@ function openPreviewModal(card) {
     const modal = document.getElementById('previewModal');
     const img = document.getElementById('previewImage');
     const fileName = document.getElementById('previewFileName');
-    const fileExt = card.querySelector('.icon-size')?.textContent || '';
+    const fileSize = document.getElementById('previewFileSize');
 
     if (!card) return;
 
     // 获取图片 URI (需要通过扩展传递)
     img.src = card.querySelector('img')?.src || '';
-    fileName.textContent = card.dataset.name + (fileExt ? '.' + fileExt : '');
+    // 从 relativePath 提取完整文件名（含扩展名），如 "logo.png"
+    fileName.textContent = card.dataset.relative.split('/').pop();
+    // 文件大小（由模板预格式化）
+    const sizeBytes = parseInt(card.dataset.filesize);
+    fileSize.textContent = sizeBytes > 0 ? formatFileSize(sizeBytes) : '';
 
     modal.classList.add('visible');
     document.body.style.overflow = 'hidden';
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
 function closePreviewModal() {

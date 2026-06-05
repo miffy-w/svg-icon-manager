@@ -12,6 +12,7 @@ export interface ImageAsset {
   relativePath: string;   // 相对工作区的路径
   format: ImageFormat;    // 文件格式
   size: { width: number; height: number };
+  fileSize?: number;      // 文件大小（字节）
   content?: string;       // SVG 内联内容（仅 SVG 有）
 }
 
@@ -26,8 +27,7 @@ export type WebviewCommand =
   | "copyImport"
   | "openFile"
   | "refresh"
-  | "updateIcons"
-  | "previewImage";
+  | "updateIcons";
 
 export interface WebviewMessage {
   command: WebviewCommand;

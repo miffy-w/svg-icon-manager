@@ -33,6 +33,11 @@ export class IconPanel {
     this.loadConfig();
   }
 
+  /** 获取当前工作区根目录（动态读取） */
+  private getWorkspaceRoot(): string | undefined {
+    return this.workspaceRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  }
+
   private loadConfig(): void {
     const config = vscode.workspace.getConfiguration("svgIconManager");
     this.iconSize = config.get<number>("iconSize", 80);
@@ -44,6 +49,7 @@ export class IconPanel {
       return;
     }
 
+    const root = this.getWorkspaceRoot();
     this.panel = vscode.window.createWebviewPanel(
       "svgIconManager",
       "SVG Icon Manager",
@@ -51,8 +57,8 @@ export class IconPanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: this.workspaceRoot
-          ? [vscode.Uri.file(this.workspaceRoot)]
+        localResourceRoots: root
+          ? [vscode.Uri.file(root)]
           : [],
       },
     );
@@ -170,7 +176,7 @@ export class IconPanel {
   }
 
   private getWebviewUri(filePath: string): vscode.Uri | undefined {
-    if (!this.panel || !this.workspaceRoot) {
+    if (!this.panel || !this.getWorkspaceRoot()) {
       return undefined;
     }
     const fileUri = vscode.Uri.file(filePath);
@@ -223,9 +229,20 @@ export class IconPanel {
     vscode.window.showInformationMessage("Asset name copied to clipboard!");
   }
 
-  private async copyImport(filePath: string, name: string): Promise<void> {
-    const sanitizedName = name.replace(/[^a-zA-Z0-9]/g, "");
-    const importCode = `import ${sanitizedName} from '${filePath}';`;
+  private async copyImport(relativePath: string, name: string): Promise<void> {
+    // 保留合法 JS 标识符字符，用 _ 替换非法字符
+    let sanitizedName = name.replace(/[^a-zA-Z0-9_$]/g, "_");
+    // 不能以数字开头
+    if (/^\d/.test(sanitizedName)) {
+      sanitizedName = "_" + sanitizedName;
+    }
+    // 空字符串回退
+    if (!sanitizedName) {
+      sanitizedName = "Asset";
+    }
+    // 确保路径以 ./ 开头
+    const normalizedPath = relativePath.startsWith(".") ? relativePath : "./" + relativePath;
+    const importCode = `import ${sanitizedName} from '${normalizedPath}';`;
     await vscode.env.clipboard.writeText(importCode);
     vscode.window.showInformationMessage("Import code copied to clipboard!");
   }

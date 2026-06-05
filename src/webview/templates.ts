@@ -41,6 +41,15 @@ function actionButton(
 }
 
 /**
+ * Format file size in bytes to human-readable string
+ */
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
  * Render a single asset card
  */
 export function renderIconCard(
@@ -69,8 +78,14 @@ export function renderIconCard(
     ? `data-preview="true" data-src="${asset.path}"`
     : "";
 
+  // 尺寸信息文本
+  const dimText = asset.size.width > 0
+    ? `${asset.size.width}×${asset.size.height}`
+    : asset.format.toUpperCase();
+  const fileSizeText = asset.fileSize ? formatFileSize(asset.fileSize) : "";
+
   return `
-    <div class="icon-card" data-path="${asset.path}" data-name="${asset.name}" data-relative="${asset.relativePath}" data-format="${asset.format}">
+    <div class="icon-card" data-path="${asset.path}" data-name="${asset.name}" data-relative="${asset.relativePath}" data-format="${asset.format}" data-filesize="${asset.fileSize || ""}">
       <div class="icon-preview ${isImage ? "image-preview" : ""}" ${previewClickAttr}>
         ${previewContent}
         ${isImage ? `<div class="image-overlay"></div>` : ""}
@@ -78,7 +93,7 @@ export function renderIconCard(
       <div class="icon-info">
         <div class="icon-name" title="${asset.name}">${asset.name}</div>
         <div class="icon-path" title="${asset.relativePath}">${asset.relativePath}</div>
-        <div class="icon-size">${asset.size.width > 0 ? `${asset.size.width}×${asset.size.height}` : asset.format.toUpperCase()}</div>
+        <div class="icon-meta">${dimText}${fileSizeText ? ` · ${fileSizeText}` : ""}</div>
       </div>
       <div class="card-actions">
         ${actionButton("copyName", "Copy Name")}
@@ -118,7 +133,7 @@ export function renderDirectoryOptions(
 }
 
 /**
- * Render format filter options
+ * Render format filter chips (checkbox-based toggle UI)
  */
 export function renderFormatOptions(selectedFormats: ImageFormat[]): string {
   const formats: ImageFormat[] = [
@@ -133,7 +148,10 @@ export function renderFormatOptions(selectedFormats: ImageFormat[]): string {
   return formats
     .map(
       (format) =>
-        `<option value="${format}" ${selectedFormats.includes(format) ? "selected" : ""}>${format.toUpperCase()}</option>`,
+        `<label class="format-chip ${selectedFormats.includes(format) ? "active" : ""}">
+          <input type="checkbox" value="${format}" ${selectedFormats.includes(format) ? "checked" : ""} />
+          ${format.toUpperCase()}
+        </label>`,
     )
     .join("");
 }
@@ -157,7 +175,10 @@ function renderPreviewModal(): string {
       <div class="modal-backdrop"></div>
       <div class="modal-content">
         <div class="modal-header">
-          <span class="file-name" id="previewFileName"></span>
+          <div class="modal-header-left">
+            <span class="file-name" id="previewFileName"></span>
+            <span class="file-size" id="previewFileSize"></span>
+          </div>
           <button class="modal-close" id="modalClose">✕</button>
         </div>
         <img class="preview-image" id="previewImage" src="" alt="Preview" />
@@ -197,11 +218,8 @@ ${styles}
         <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="Search assets..." value="${searchQuery}">
       </div>
-      <div class="format-filter">
-        <select id="formatFilter" multiple size="1">
-          ${formatOptions}
-        </select>
-        <button id="applyFormatFilter" class="apply-btn">Apply</button>
+      <div class="format-filter" id="formatFilter">
+        ${formatOptions}
       </div>
       <div class="path-filter">
         <select id="pathFilter">
