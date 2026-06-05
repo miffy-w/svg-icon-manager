@@ -247,7 +247,7 @@ export class IconScanner {
     // 移除事件处理器属性 (onclick, onload, onerror 等)
     content = content.replace(/\s+on\w+\s*=\s*"[^"]*"/gi, '');
     content = content.replace(/\s+on\w+\s*=\s*'[^']*'/gi, '');
-    content = content.replace(/\s+on\w+\s*=\s*[^\s>\/]+/gi, '');
+    content = content.replace(/\s+on\w+\s*=\s*[^\s>/]+/gi, '');
     // 移除 <foreignObject> 元素（可嵌入 HTML/JS）
     content = content.replace(/<foreignObject\b[^<]*(?:(?!<\/foreignObject>)<[^<]*)*<\/foreignObject>/gi, '');
     return content;
