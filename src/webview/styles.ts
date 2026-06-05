@@ -434,6 +434,7 @@ const modalStyles = `
 
 .modal-header {
     display: flex;
+    column-gap: 24px;
     justify-content: space-between;
     align-items: center;
     width: 100%;
