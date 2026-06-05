@@ -63,7 +63,11 @@ document.getElementById('pathFilter').addEventListener('change', (e) => {
 
 // Refresh button — spin icon on click for visual feedback
 document.getElementById('refreshBtn').addEventListener('click', (e) => {
-    e.currentTarget.classList.add('spinning');
+    const btn = e.currentTarget;
+    // 先移除再强制重排，确保 animation 每次都能重新触发
+    btn.classList.remove('spinning');
+    void btn.offsetWidth;
+    btn.classList.add('spinning');
     vscode.postMessage({ command: 'refresh' });
 });
 

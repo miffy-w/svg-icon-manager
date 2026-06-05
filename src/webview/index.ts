@@ -135,7 +135,7 @@ export class IconPanel {
     const formatsToScan = this.selectedFormats.length > 0 ? this.selectedFormats : undefined;
     this.assets = await this.scanner.scan(formatsToScan);
     this.directories = this.extractDirectories(this.assets);
-    this.applyFilters();
+    this.applyFilters(true); // skipUpdate: updateFull() 会重建整个页面
     this.updateFull();
   }
 
@@ -150,7 +150,7 @@ export class IconPanel {
     return Array.from(dirSet).sort();
   }
 
-  private applyFilters(): void {
+  private applyFilters(skipUpdate: boolean = false): void {
     let result = [...this.assets];
 
     // Apply directory filter
@@ -172,7 +172,9 @@ export class IconPanel {
     }
 
     this.filteredAssets = result;
-    this.updateIcons();
+    if (!skipUpdate) {
+      this.updateIcons();
+    }
   }
 
   private getWebviewUri(filePath: string): vscode.Uri | undefined {
