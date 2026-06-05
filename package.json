@@ -2,7 +2,7 @@
   "name": "svg-icon-manager",
   "displayName": "Image Asset Manager",
   "description": "Scan, preview, and manage all image assets (SVG, PNG, JPG, WebP, GIF, ICO, BMP) in your workspace with a beautiful card-based gallery",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "publisher": "svg-icon-manager",
   "author": "miffy-w",
   "license": "MIT",
@@ -76,7 +76,7 @@
             "build",
             "coverage"
           ],
-          "description": "Directory patterns to ignore when scanning for image files"
+          "description": "Directory patterns to ignore when scanning (supports glob patterns like **/test/** or exact names like node_modules)"
         },
         "svgIconManager.iconSize": {
           "type": "number",

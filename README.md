@@ -1,24 +1,27 @@
-# SVG Icon Manager
+# Image Asset Manager
 
 ![GitHub release](https://img.shields.io/github/v/release/miffy-w/svg-icon-manager?style=flat-square)
 ![License](https://img.shields.io/github/license/miffy-w/svg-icon-manager?style=flat-square)
 ![GitHub stars](https://img.shields.io/github/stars/miffy-w/svg-icon-manager?style=flat-square)
 
-A beautiful and efficient VS Code extension for managing SVG icons in your workspace. Scan, preview, search, and organize all your SVG icons with an intuitive card-based gallery interface.
+A beautiful and efficient VS Code extension for managing image assets in your workspace. Scan, preview, search, and organize all your image assets (SVG, PNG, JPG, WebP, GIF, ICO, BMP) with an intuitive card-based gallery interface.
 
 ## ✨ Features
 
-- **🔍 Smart Scanning**: Automatically scans your workspace for SVG files
-- **🎨 Beautiful Gallery**: Card-based icon preview with hover effects
-- **🔎 Powerful Search**: Search icons by name or file path
-- **📁 Path Filtering**: Filter icons by directory to quickly find what you need
+- **🖼️ Multi-Format Support**: Scans SVG, PNG, JPG, WebP, GIF, ICO, and BMP files
+- **🔍 Smart Scanning**: Automatically discovers all image assets in your workspace
+- **🎨 Beautiful Gallery**: Card-based preview with hover effects and zoom overlay for images
+- **🔎 Powerful Search**: Search assets by name or file path with real-time filtering
+- **🏷️ Format Filter**: Toggle individual image formats with clickable chip buttons
+- **📁 Path Filtering**: Filter assets by directory to quickly find what you need
+- **🖼️ Image Preview Modal**: Click any image card to open a full-size preview with file details
 - **📋 Quick Actions**:
-  - Copy file path to clipboard
-  - Copy import code instantly
-  - Open SVG file in editor
-- **📊 Icon Information**: Displays icon name, path, and dimensions
-- **⚡ Fast Performance**: Optimized scanning and rendering
-- **🌙 Dark Mode Support**: Seamlessly adapts to VS Code themes
+  - Copy asset name to clipboard
+  - Copy import code with proper relative path
+  - Open file in editor
+- **📊 Asset Information**: Displays file name, path, dimensions, and file size
+- **⚡ Fast Performance**: Optimized scanning with incremental grid updates
+- **🌙 Dark Mode Support**: Seamlessly adapts to VS Code themes using CSS variables
 
 ## 🚀 Installation
 
@@ -26,16 +29,8 @@ A beautiful and efficient VS Code extension for managing SVG icons in your works
 
 1. Open VS Code
 2. Press `Ctrl+Shift+X` (Mac: `Cmd+Shift+X`) to open Extensions
-3. Search for "SVG Icon Manager"
+3. Search for "Image Asset Manager"
 4. Click Install
-
-```bash
-# cursor
-cursor --install-extension svg-icon-manager.svg-icon-manager
-```
-
-or download .vsix file and then import it:
-[https://marketplace.visualstudio.com/\_apis/public/gallery/publishers/svg-icon-manager/vsextensions/svg-icon-manager/1.1.3/vspackage](https://marketplace.visualstudio.com/_apis/public/gallery/publishers/svg-icon-manager/vsextensions/svg-icon-manager/1.1.3/vspackage)
 
 ### Manual Installation
 
@@ -50,38 +45,42 @@ or download .vsix file and then import it:
 ### Opening the Extension
 
 - **Keyboard Shortcut**: Press `Ctrl+Alt+S` (Mac: `Cmd+Alt+S`)
-- **Command Palette**: Press `Ctrl+Shift+P`, type "SVG Icon Manager"
+- **Command Palette**: Press `Ctrl+Shift+P`, type "Image Asset Manager"
 
 ### Features
 
-#### Searching Icons
+#### Searching Assets
 
-Use the search box to filter icons by name or file path. The search is case-insensitive and updates in real-time.
+Use the search box to filter assets by name or file path. The search is case-insensitive and updates in real-time as you type.
+
+#### Filtering by Format
+
+Click the format chips (SVG, PNG, JPG, etc.) to toggle which image formats are displayed. The view updates immediately on each click.
 
 #### Filtering by Directory
 
-Select a specific directory from the dropdown to view only icons in that location. This is useful when working with large projects.
+Select a specific directory from the dropdown to view only assets in that location. This is useful when working with large projects.
 
-#### Icon Actions
+#### Previewing Images
 
-Each icon card has quick action buttons (visible on hover):
+Click any non-SVG image card to open a full-size preview modal. The modal shows the full filename (with extension) and file size. Press `Escape`, click the backdrop, or click the ✕ button to close.
 
-- **Copy Name** (`📋`): Copies the icon name to clipboard
-- **Copy Import** (`📄`): Copies a ready-to-use import statement
-- **Open File** (`✅`): Opens the SVG file in the editor
+#### Asset Actions
 
-#### Refreshing
+Each card has quick action buttons (visible on hover):
 
-Click the "Refresh" button to rescan your workspace for new or modified SVG files.
+- **Copy Name**: Copies the asset name to clipboard
+- **Copy Import**: Copies a ready-to-use import statement with relative path
+- **Open File**: Opens the asset file in the editor
 
 ## ⚙️ Configuration
 
 You can customize the extension behavior through VS Code settings:
 
-| Setting                         | Type   | Default                                                        | Description                                |
-| ------------------------------- | ------ | -------------------------------------------------------------- | ------------------------------------------ |
-| `svgIconManager.ignorePatterns` | array  | `["node_modules", ".git", "out", "dist", "build", "coverage"]` | Directory patterns to ignore when scanning |
-| `svgIconManager.iconSize`       | number | `80`                                                           | Size of icon preview in pixels (48-128)    |
+| Setting                         | Type   | Default                                                        | Description                                               |
+| ------------------------------- | ------ | -------------------------------------------------------------- | --------------------------------------------------------- |
+| `svgIconManager.ignorePatterns` | array  | `["node_modules", ".git", "out", "dist", "build", "coverage"]` | Directory patterns to ignore (supports glob like `**/test/**`) |
+| `svgIconManager.iconSize`       | number | `80`                                                           | Size of asset preview in pixels (48-128)                  |
 
 ### Example Configuration
 
@@ -95,7 +94,8 @@ You can customize the extension behavior through VS Code settings:
     "build",
     "coverage",
     ".next",
-    ".nuxt"
+    ".nuxt",
+    "**/test/**"
   ],
   "svgIconManager.iconSize": 96
 }
@@ -106,7 +106,7 @@ You can customize the extension behavior through VS Code settings:
 ### Prerequisites
 
 - Node.js 18 or higher
-- npm or yarn
+- npm
 - VS Code
 
 ### Building
@@ -153,7 +153,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Built with [VS Code Extension API](https://code.visualstudio.com/api)
-- Inspired by various icon management tools
+- Image dimension detection via [image-size](https://github.com/image-size/image-size)
+- Glob matching via [minimatch](https://github.com/isaacs/minimatch)
 
 ## 📧 Support
 
