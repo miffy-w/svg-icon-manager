@@ -251,6 +251,7 @@ export class IconPanel {
 
   private async openFile(filePath: string): Promise<void> {
     const uri = vscode.Uri.file(filePath);
-    await vscode.window.showTextDocument(uri);
+    // 使用 vscode.open 而非 showTextDocument，兼容二进制图片文件
+    await vscode.commands.executeCommand("vscode.open", uri);
   }
 }
