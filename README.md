@@ -13,7 +13,7 @@ A beautiful and efficient VS Code extension for managing image assets in your wo
 - **🎨 Beautiful Gallery**: Card-based preview with hover effects and zoom overlay for images
 - **🔎 Powerful Search**: Search assets by name or file path with real-time filtering
 - **🏷️ Format Filter**: Toggle individual image formats with clickable chip buttons
-- **📁 Path Filtering**: Filter assets by directory to quickly find what you need
+- **📁 Directory Tree Filter**: Filter assets by directory with a searchable tree dropdown — collapsible nodes, connector lines, asset count badges, and parent directories include all subdirectories
 - **🖼️ Image Preview Modal**: Click any image card to open a full-size preview with file details
 - **📋 Quick Actions**:
   - Copy asset name to clipboard
@@ -59,7 +59,7 @@ Click the format chips (SVG, PNG, JPG, etc.) to toggle which image formats are d
 
 #### Filtering by Directory
 
-Select a specific directory from the dropdown to view only assets in that location. This is useful when working with large projects.
+Open the directory dropdown to browse your folders as a collapsible tree with asset counts per directory. Selecting a parent directory shows assets from all of its subdirectories. Type in the dropdown's search box to quickly locate a directory by its full path.
 
 #### Previewing Images
 
@@ -77,10 +77,10 @@ Each card has quick action buttons (visible on hover):
 
 You can customize the extension behavior through VS Code settings:
 
-| Setting                         | Type   | Default                                                        | Description                                               |
-| ------------------------------- | ------ | -------------------------------------------------------------- | --------------------------------------------------------- |
+| Setting                         | Type   | Default                                                        | Description                                                    |
+| ------------------------------- | ------ | -------------------------------------------------------------- | -------------------------------------------------------------- |
 | `svgIconManager.ignorePatterns` | array  | `["node_modules", ".git", "out", "dist", "build", "coverage"]` | Directory patterns to ignore (supports glob like `**/test/**`) |
-| `svgIconManager.iconSize`       | number | `80`                                                           | Size of asset preview in pixels (48-128)                  |
+| `svgIconManager.iconSize`       | number | `80`                                                           | Size of asset preview in pixels (48-128)                       |
 
 ### Example Configuration
 

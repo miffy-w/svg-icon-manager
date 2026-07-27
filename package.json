@@ -2,7 +2,7 @@
   "name": "svg-icon-manager",
   "displayName": "Image Asset Manager",
   "description": "Scan, preview, and manage all image assets (SVG, PNG, JPG, WebP, GIF, ICO, BMP) in your workspace with a beautiful card-based gallery",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "publisher": "svg-icon-manager",
   "author": "miffy-w",
   "license": "MIT",
