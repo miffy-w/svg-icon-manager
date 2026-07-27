@@ -9,6 +9,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -37,10 +40,10 @@ jobs:
         run: npx ovsx publish -p ${{ secrets.OPEN_VSX }}
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: "*.vsix"
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.SVG_ICON_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
