@@ -1,12 +1,11 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import * as fs from "fs";
 import { ImageAsset, ImageFormat, WebviewMessage } from "../types";
 import { IconScanner } from "../scanner";
-import { getStyles } from "./styles";
-import { getScripts } from "./scripts";
 import {
   renderIconCards,
-  renderDirectoryOptions,
+  renderDirectoryDropdown,
   renderFormatOptions,
   renderStats,
   getWebviewHtml,
@@ -20,6 +19,7 @@ export class IconPanel {
   private assets: ImageAsset[] = [];
   private filteredAssets: ImageAsset[] = [];
   private directories: string[] = [];
+  private dirCounts: Map<string, number> = new Map();
   private selectedDirectory: string = "";
   private searchQuery: string = "";
   private selectedFormats: ImageFormat[] = ["svg"]; // 默认选中 svg
@@ -35,7 +35,9 @@ export class IconPanel {
 
   /** 获取当前工作区根目录（动态读取） */
   private getWorkspaceRoot(): string | undefined {
-    return this.workspaceRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    return (
+      this.workspaceRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+    );
   }
 
   private loadConfig(): void {
@@ -57,9 +59,7 @@ export class IconPanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: root
-          ? [vscode.Uri.file(root)]
-          : [],
+        localResourceRoots: root ? [vscode.Uri.file(root)] : [],
       },
     );
 
@@ -75,7 +75,6 @@ export class IconPanel {
 
     this.panel.webview.onDidReceiveMessage(
       async (message: WebviewMessage) => {
-        console.log("🚀 ~ IconPanel ~ message:", message);
         switch (message.command) {
           case "search":
             this.searchQuery = message.query || "";
@@ -132,9 +131,11 @@ export class IconPanel {
   async refresh(): Promise<void> {
     this.loadConfig();
     // 根据选中的格式扫描，如果未选中任何格式则扫描全部
-    const formatsToScan = this.selectedFormats.length > 0 ? this.selectedFormats : undefined;
+    const formatsToScan =
+      this.selectedFormats.length > 0 ? this.selectedFormats : undefined;
     this.assets = await this.scanner.scan(formatsToScan);
     this.directories = this.extractDirectories(this.assets);
+    this.dirCounts = this.computeDirectoryCounts(this.assets);
     this.applyFilters(true); // skipUpdate: updateFull() 会重建整个页面
     this.updateFull();
   }
@@ -142,22 +143,54 @@ export class IconPanel {
   private extractDirectories(assets: ImageAsset[]): string[] {
     const dirSet = new Set<string>();
     assets.forEach((asset) => {
-      const dir = path.dirname(asset.relativePath);
-      if (dir !== ".") {
-        dirSet.add(dir);
+      const parts = asset.relativePath.replace(/\\/g, "/").split("/");
+      parts.pop(); // 去掉文件名
+      let currentPath = "";
+      for (const part of parts) {
+        currentPath = currentPath ? `${currentPath}/${part}` : part;
+        dirSet.add(currentPath);
       }
     });
-    return Array.from(dirSet).sort();
+    // 按路径段逐级排序，保证子目录紧跟父目录（避免 "assets-v2" 插入 "assets" 与 "assets/icons" 之间）
+    return Array.from(dirSet).sort((a, b) => {
+      const aParts = a.split("/");
+      const bParts = b.split("/");
+      const len = Math.min(aParts.length, bParts.length);
+      for (let i = 0; i < len; i++) {
+        if (aParts[i] !== bParts[i]) {
+          return aParts[i] < bParts[i] ? -1 : 1;
+        }
+      }
+      return aParts.length - bParts.length;
+    });
+  }
+
+  /** 计算每个目录（含子目录）的图标累计数量，与前缀过滤语义一致 */
+  private computeDirectoryCounts(assets: ImageAsset[]): Map<string, number> {
+    const counts = new Map<string, number>();
+    assets.forEach((asset) => {
+      const parts = asset.relativePath.replace(/\\/g, "/").split("/");
+      parts.pop(); // 去掉文件名
+      let currentPath = "";
+      for (const part of parts) {
+        currentPath = currentPath ? `${currentPath}/${part}` : part;
+        counts.set(currentPath, (counts.get(currentPath) ?? 0) + 1);
+      }
+    });
+    return counts;
   }
 
   private applyFilters(skipUpdate: boolean = false): void {
     let result = [...this.assets];
 
-    // Apply directory filter
+    // Apply directory filter (prefix match for hierarchical support)
     if (this.selectedDirectory) {
       result = result.filter((asset) => {
-        const dir = path.dirname(asset.relativePath);
-        return dir === this.selectedDirectory;
+        const dir = path.dirname(asset.relativePath).replace(/\\/g, "/");
+        return (
+          dir === this.selectedDirectory ||
+          dir.startsWith(this.selectedDirectory + "/")
+        );
       });
     }
 
@@ -190,14 +223,20 @@ export class IconPanel {
       return;
     }
 
-    const cardsHtml = renderIconCards(this.filteredAssets, this.panel.webview, this.workspaceRoot);
-
+    // 卡片已在 updateFull 中全量渲染，过滤只推送可见路径列表，
+    // 由前端切换显隐，避免重建整块 HTML 的序列化与重排开销
     this.panel.webview.postMessage({
-      command: "updateIcons",
-      icons: cardsHtml,
+      command: "applyFilter",
+      visible: this.filteredAssets.map((asset) => asset.relativePath),
       count: this.filteredAssets.length,
       total: this.assets.length,
     });
+  }
+
+  /** 读取 media 目录下的静态资源（CSS/JS），内联进 webview HTML */
+  private readMediaFile(fileName: string): string {
+    const filePath = path.join(this.context.extensionPath, "media", fileName);
+    return fs.readFileSync(filePath, "utf-8");
   }
 
   private updateFull(): void {
@@ -205,21 +244,39 @@ export class IconPanel {
       return;
     }
 
-    const styles = getStyles(this.iconSize);
-    const scripts = getScripts();
-    const cardsHtml = renderIconCards(this.filteredAssets, this.panel.webview, this.workspaceRoot);
-    const directoriesOptions = renderDirectoryOptions(
+    // 图标尺寸通过 CSS 变量注入，webview.css 本身保持纯静态
+    const styles =
+      `:root { --icon-size: ${this.iconSize}px; }\n` +
+      this.readMediaFile("webview.css");
+    const scripts = this.readMediaFile("webview.js");
+    // 全量渲染所有卡片，不在过滤结果内的用 hidden 隐藏，
+    // 后续搜索/目录过滤仅切换显隐，无需重建 DOM
+    const visibleSet = new Set(
+      this.filteredAssets.map((asset) => asset.relativePath),
+    );
+    const cardsHtml = renderIconCards(
+      this.assets,
+      this.panel.webview,
+      this.workspaceRoot,
+      visibleSet,
+    );
+    const directoriesDropdown = renderDirectoryDropdown(
       this.directories,
       this.selectedDirectory,
+      this.dirCounts,
+      this.assets.length,
     );
     const formatOptions = renderFormatOptions(this.selectedFormats);
-    const statsText = renderStats(this.filteredAssets.length, this.assets.length);
+    const statsText = renderStats(
+      this.filteredAssets.length,
+      this.assets.length,
+    );
 
     this.panel.webview.html = getWebviewHtml(
       styles,
       scripts,
       this.searchQuery,
-      directoriesOptions,
+      directoriesDropdown,
       formatOptions,
       cardsHtml,
       statsText,
@@ -243,7 +300,9 @@ export class IconPanel {
       sanitizedName = "Asset";
     }
     // 确保路径以 ./ 开头
-    const normalizedPath = relativePath.startsWith(".") ? relativePath : "./" + relativePath;
+    const normalizedPath = relativePath.startsWith(".")
+      ? relativePath
+      : "./" + relativePath;
     const importCode = `import ${sanitizedName} from '${normalizedPath}';`;
     await vscode.env.clipboard.writeText(importCode);
     vscode.window.showInformationMessage("Import code copied to clipboard!");

@@ -1,0 +1,796 @@
+/*
+ * Webview 样式表
+ * 由扩展在运行时通过 fs 读取后内联进 HTML。
+ * 图标尺寸通过 CSS 变量 --icon-size 注入（见 index.ts updateFull）。
+ */
+
+/* ========== Base ========== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--vscode-font-family);
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-editor-background);
+  padding: 20px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========== Header ========== */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block-end: 16px;
+  flex-wrap: wrap;
+}
+
+.header h1 {
+  font-size: 24px;
+  line-height: 39px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  flex-shrink: 0;
+}
+
+.header-stats {
+  color: var(--vscode-descriptionForeground);
+  font-size: 14px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.refresh-btn {
+  padding: 6px 16px;
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.refresh-btn:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.refresh-btn.spinning svg {
+  animation: spin 0.6s linear;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========== Filters ========== */
+.filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.search-box {
+  flex: 1 1 180px;
+  min-width: 140px;
+  max-width: 320px;
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 6px 12px 6px 32px;
+  border: 1px solid var(--vscode-input-border);
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  height: 32px;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder);
+}
+
+.search-icon {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  width: 16px;
+}
+
+.format-filter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.format-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 14px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  user-select: none;
+  color: var(--vscode-descriptionForeground);
+  background-color: var(--vscode-input-background);
+  transition: all 0.15s ease;
+  line-height: 1.4;
+}
+
+.format-chip input[type="checkbox"] {
+  display: none;
+}
+
+.format-chip:hover {
+  border-color: var(--vscode-focusBorder);
+  color: var(--vscode-foreground);
+}
+
+.format-chip.active {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border-color: var(--vscode-button-border);
+}
+
+.path-filter {
+  flex-shrink: 0;
+}
+
+.path-filter select {
+  padding: 6px 12px;
+  border: 1px solid var(--vscode-input-border);
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  height: 32px;
+}
+
+.path-filter select:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder);
+}
+
+/* 小屏幕适配：filters 行内元素自然换行 */
+@media (max-width: 500px) {
+  .search-box {
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
+
+/* ========== Grid ========== */
+.icons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  overflow-y: auto;
+  flex: 1;
+  padding-block-start: 8px;
+  padding-inline-end: 8px;
+  align-content: start;
+  min-height: 0;
+}
+
+/* ========== Card ========== */
+.icon-card {
+  background-color: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 8px;
+  padding: 48px 24px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  /* 视口外的卡片跳过渲染（内联 SVG 解析/布局），大量图标时接近虚拟滚动效果 */
+  content-visibility: auto;
+  contain-intrinsic-size: 200px calc(var(--icon-size, 80px) + 160px);
+}
+
+/* 被过滤隐藏的卡片 */
+.icon-card.hidden {
+  display: none;
+}
+
+.icon-card:hover {
+  border-color: var(--vscode-focusBorder);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--vscode-widget-shadow);
+}
+
+.icon-preview {
+  width: var(--icon-size, 80px);
+  height: var(--icon-size, 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--vscode-editor-background);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.icon-preview svg {
+  width: 100%;
+  height: 100%;
+  max-width: 64px;
+  max-height: 64px;
+}
+
+.icon-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.icon-preview.image-preview {
+  cursor: pointer;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  cursor: zoom-in;
+  transition: opacity 0.2s ease;
+  border-radius: 8px;
+}
+
+.icon-preview.image-preview:hover .image-overlay {
+  opacity: 1;
+}
+
+.preview-placeholder {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  opacity: 0.5;
+}
+
+.icon-info {
+  width: 100%;
+  text-align: center;
+}
+
+.icon-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--vscode-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.icon-path {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.icon-meta {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.icon-card:hover .card-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.action-btn:hover {
+  background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+/* ========== Scrollbar ========== */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vscode-editor-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vscode-scrollbarSlider-background);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vscode-scrollbarSlider-hoverBackground);
+}
+
+/* ========== Empty state ========== */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.empty-state svg {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* ========== Preview modal ========== */
+.preview-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-modal.visible {
+  display: flex;
+}
+
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--vscode-editor-background);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  margin: 20px;
+}
+
+.modal-header {
+  display: flex;
+  column-gap: 24px;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--vscode-editor-border);
+}
+
+.modal-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+
+.file-name {
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--vscode-toolbar-hoverBackground);
+  color: var(--vscode-foreground);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-close:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: calc(90vh - 100px);
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+/* ========== Directory dropdown ========== */
+.dir-dropdown {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dir-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--vscode-input-border);
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  height: 32px;
+  min-width: 140px;
+  max-width: 360px;
+}
+
+.dir-dropdown-trigger:hover {
+  border-color: var(--vscode-focusBorder);
+}
+
+.dir-dropdown-trigger:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -2px;
+}
+
+/* 有目录过滤生效时的激活态 */
+.dir-dropdown-trigger.filtered {
+  border-color: var(--vscode-focusBorder);
+}
+
+.dir-dropdown-trigger.filtered .dir-trigger-text {
+  color: var(--vscode-foreground);
+  font-weight: 500;
+}
+
+.dir-dropdown-trigger svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.dir-trigger-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.dir-trigger-arrow {
+  font-size: 10px;
+  color: var(--vscode-descriptionForeground);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.dir-dropdown.open .dir-trigger-arrow {
+  transform: rotate(180deg);
+}
+
+.dir-dropdown-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 260px;
+  max-width: 360px;
+  background-color: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px var(--vscode-widget-shadow);
+  z-index: 100;
+}
+
+.dir-dropdown.open .dir-dropdown-panel {
+  display: block;
+}
+
+/* 面板可能超出视口右缘时由脚本切换为右对齐 */
+.dir-dropdown-panel.align-right {
+  left: auto;
+  right: 0;
+}
+
+.dir-dropdown-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--vscode-dropdown-border);
+  position: sticky;
+  top: 0;
+  background-color: var(--vscode-dropdown-background);
+  border-radius: 6px 6px 0 0;
+}
+
+.dir-dropdown-search svg {
+  flex-shrink: 0;
+  opacity: 0.5;
+  color: var(--vscode-descriptionForeground);
+}
+
+.dir-dropdown-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--vscode-input-foreground);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  padding: 2px 0;
+}
+
+.dir-dropdown-search input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.dir-dropdown-list {
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.dir-dropdown-empty {
+  display: none;
+  padding: 16px 8px;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
+}
+
+.dir-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--vscode-foreground);
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.dir-dropdown-item:hover {
+  background-color: var(--vscode-list-hoverBackground);
+}
+
+.dir-dropdown-item.active {
+  background-color: var(--vscode-list-activeSelectionBackground);
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+/* "All Directories" 行下方的分隔线 */
+.dir-dropdown-item.dir-all {
+  position: relative;
+  margin-bottom: 7px;
+}
+
+.dir-dropdown-item.dir-all::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  height: 1px;
+  background-color: var(--vscode-dropdown-border);
+}
+
+.dir-indent-guide {
+  width: 16px;
+  flex-shrink: 0;
+  align-self: stretch;
+  position: relative;
+}
+
+/* 竖线（│ / ├）：上下外扩覆盖行内边距，使相邻行的线连续 */
+.dir-guide-line::before,
+.dir-guide-tee::before,
+.dir-guide-elbow::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: -5px;
+  width: 1px;
+  background-color: var(
+    --vscode-tree-indentGuidesStroke,
+    rgba(128, 128, 128, 0.35)
+  );
+}
+
+.dir-guide-line::before,
+.dir-guide-tee::before {
+  bottom: -5px;
+}
+
+/* └：最后一个子节点，竖线止于行中 */
+.dir-guide-elbow::before {
+  bottom: 50%;
+}
+
+/* ├ / └ 的横向连接线，向右延伸跨过 gap 连到折叠箭头 */
+.dir-guide-tee::after,
+.dir-guide-elbow::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  right: -6px;
+  top: 50%;
+  height: 1px;
+  background-color: var(
+    --vscode-tree-indentGuidesStroke,
+    rgba(128, 128, 128, 0.35)
+  );
+}
+
+/* 折叠箭头：展开时旋转 90 度指向下方 */
+.dir-twisty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--vscode-descriptionForeground);
+}
+
+.dir-twisty:hover {
+  background-color: var(--vscode-toolbar-hoverBackground);
+  color: var(--vscode-foreground);
+}
+
+.dir-twisty-placeholder {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* 叶子节点没有折叠箭头，横向连接线继续延伸穿过占位符靠近文件夹图标
+   （仅当占位符前有连接线时，根级目录不画） */
+.dir-indent-guide + .dir-twisty-placeholder {
+  position: relative;
+}
+
+.dir-indent-guide + .dir-twisty-placeholder::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  right: -3px;
+  top: 50%;
+  height: 1px;
+  background-color: var(
+    --vscode-tree-indentGuidesStroke,
+    rgba(128, 128, 128, 0.35)
+  );
+}
+
+.dir-twisty svg {
+  transform: rotate(90deg);
+  transition: transform 0.1s ease;
+}
+
+.dir-dropdown-item.collapsed .dir-twisty svg {
+  transform: rotate(0deg);
+}
+
+.dir-dropdown-item svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.dir-label,
+.dir-path-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 搜索时切换为平铺模式：隐藏树形元素（参考线/折叠箭头/叶子名），显示完整路径 */
+.dir-path-label {
+  display: none;
+}
+
+.dir-dropdown-list.searching .dir-indent-guide,
+.dir-dropdown-list.searching .dir-twisty,
+.dir-dropdown-list.searching .dir-label {
+  display: none;
+}
+
+.dir-dropdown-list.searching .dir-path-label {
+  display: block;
+}
+
+/* 图标数量徽标 */
+.dir-count {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 16px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background-color: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+}

@@ -1,19 +1,27 @@
 /**
  * 支持的图片格式
  */
-export type ImageFormat = 'svg' | 'png' | 'jpg' | 'jpeg' | 'webp' | 'gif' | 'ico' | 'bmp';
+export type ImageFormat =
+  | "svg"
+  | "png"
+  | "jpg"
+  | "jpeg"
+  | "webp"
+  | "gif"
+  | "ico"
+  | "bmp";
 
 /**
  * 图片资源类型定义
  */
 export interface ImageAsset {
-  name: string;           // 文件名（不含扩展名）
-  path: string;           // 绝对路径
-  relativePath: string;   // 相对工作区的路径
-  format: ImageFormat;    // 文件格式
+  name: string; // 文件名（不含扩展名）
+  path: string; // 绝对路径
+  relativePath: string; // 相对工作区的路径
+  format: ImageFormat; // 文件格式
   size: { width: number; height: number };
-  fileSize?: number;      // 文件大小（字节）
-  content?: string;       // SVG 内联内容（仅 SVG 有）
+  fileSize?: number; // 文件大小（字节）
+  content?: string; // SVG 内联内容（仅 SVG 有）
 }
 
 /**
@@ -27,7 +35,7 @@ export type WebviewCommand =
   | "copyImport"
   | "openFile"
   | "refresh"
-  | "updateIcons";
+  | "applyFilter";
 
 export interface WebviewMessage {
   command: WebviewCommand;
@@ -37,9 +45,9 @@ export interface WebviewMessage {
   formats?: ImageFormat[];
 }
 
-export interface UpdateIconsMessage {
-  command: "updateIcons";
-  icons: string;
+export interface ApplyFilterMessage {
+  command: "applyFilter";
+  visible: string[]; // 过滤后可见资源的 relativePath 列表
   count: number;
   total: number;
 }

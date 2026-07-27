@@ -9,21 +9,28 @@ import { ImageAsset, ImageFormat } from "./types";
  * 支持的图片格式列表
  */
 const SUPPORTED_FORMATS: ImageFormat[] = [
-  'svg', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'ico', 'bmp'
+  "svg",
+  "png",
+  "jpg",
+  "jpeg",
+  "webp",
+  "gif",
+  "ico",
+  "bmp",
 ];
 
 /**
  * 格式对应的文件扩展名映射
  */
 const FORMAT_EXTENSIONS: Record<ImageFormat, string[]> = {
-  svg: ['.svg'],
-  png: ['.png'],
-  jpg: ['.jpg', '.jpeg'],
-  jpeg: ['.jpg', '.jpeg'],
-  webp: ['.webp'],
-  gif: ['.gif'],
-  ico: ['.ico'],
-  bmp: ['.bmp']
+  svg: [".svg"],
+  png: [".png"],
+  jpg: [".jpg", ".jpeg"],
+  jpeg: [".jpg", ".jpeg"],
+  webp: [".webp"],
+  gif: [".gif"],
+  ico: [".ico"],
+  bmp: [".bmp"],
 };
 
 /**
@@ -42,7 +49,9 @@ export class IconScanner {
    */
   private getWorkspaceRoot(): string | undefined {
     // 优先用传入的，回退到 VS Code API
-    return this.workspaceRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    return (
+      this.workspaceRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+    );
   }
 
   private loadConfig(): void {
@@ -73,16 +82,23 @@ export class IconScanner {
     const targetFormats = formats || SUPPORTED_FORMATS;
     const files = await this.findImageFiles(workspaceRoot, targetFormats);
 
-    // 使用 Promise.allSettled 确保部分失败不影响整体
-    const results = await Promise.allSettled(
-      files.map(filePath => this.parseImageFile(filePath))
-    );
+    // 分批解析，限制并发文件句柄数；使用 allSettled 确保部分失败不影响整体
+    const BATCH_SIZE = 32;
+    const parsed: (ImageAsset | null)[] = [];
+    for (let i = 0; i < files.length; i += BATCH_SIZE) {
+      const results = await Promise.allSettled(
+        files
+          .slice(i, i + BATCH_SIZE)
+          .map((filePath) => this.parseImageFile(filePath)),
+      );
+      results.forEach((r) => {
+        if (r.status === "fulfilled") {
+          parsed.push(r.value);
+        }
+      });
+    }
 
-    // 只取成功的解析结果
-    this.assets = results
-      .filter((r): r is PromiseFulfilledResult<ImageAsset | null> => r.status === 'fulfilled')
-      .map(r => r.value)
-      .filter((asset): asset is ImageAsset => asset !== null);
+    this.assets = parsed.filter((asset): asset is ImageAsset => asset !== null);
 
     this.assets.sort((a, b) => a.name.localeCompare(b.name));
     return this.assets;
@@ -99,7 +115,7 @@ export class IconScanner {
    * 检查给定路径是否匹配任一忽略模式
    */
   private shouldIgnore(relativePath: string, entryName: string): boolean {
-    return this.ignorePatterns.some(pattern => {
+    return this.ignorePatterns.some((pattern) => {
       // 精确目录名匹配（向后兼容）
       if (pattern === entryName) {
         return true;
@@ -126,7 +142,9 @@ export class IconScanner {
 
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        const relPath = path.relative(this.getWorkspaceRoot()!, fullPath).replace(/\\/g, "/");
+        const relPath = path
+          .relative(this.getWorkspaceRoot()!, fullPath)
+          .replace(/\\/g, "/");
 
         if (this.shouldIgnore(relPath, entry.name)) {
           continue;
@@ -143,8 +161,8 @@ export class IconScanner {
         } else {
           // 检查文件扩展名是否匹配目标格式
           const ext = path.extname(entry.name).toLowerCase();
-          const isMatch = formats.some(format =>
-            FORMAT_EXTENSIONS[format].includes(ext)
+          const isMatch = formats.some((format) =>
+            FORMAT_EXTENSIONS[format].includes(ext),
           );
           if (isMatch) {
             files.push(fullPath);
@@ -172,8 +190,8 @@ export class IconScanner {
       const stat = await fs.promises.stat(filePath);
 
       // SVG 特殊处理：读取内容用于内联渲染（需清洗防止 XSS）
-      if (format === 'svg') {
-        const rawContent = await fs.promises.readFile(filePath, 'utf-8');
+      if (format === "svg") {
+        const rawContent = await fs.promises.readFile(filePath, "utf-8");
         const content = this.sanitizeSvg(rawContent);
         const size = this.extractSvgSize(rawContent);
 
@@ -243,26 +261,62 @@ export class IconScanner {
    */
   private sanitizeSvg(content: string): string {
     // 移除 <script> 元素及其内容
-    content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    content = content.replace(
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      "",
+    );
     // 移除事件处理器属性 (onclick, onload, onerror 等)
-    content = content.replace(/\s+on\w+\s*=\s*"[^"]*"/gi, '');
-    content = content.replace(/\s+on\w+\s*=\s*'[^']*'/gi, '');
-    content = content.replace(/\s+on\w+\s*=\s*[^\s>/]+/gi, '');
+    content = content.replace(/\s+on\w+\s*=\s*"[^"]*"/gi, "");
+    content = content.replace(/\s+on\w+\s*=\s*'[^']*'/gi, "");
+    content = content.replace(/\s+on\w+\s*=\s*[^\s>/]+/gi, "");
     // 移除 <foreignObject> 元素（可嵌入 HTML/JS）
-    content = content.replace(/<foreignObject\b[^<]*(?:(?!<\/foreignObject>)<[^<]*)*<\/foreignObject>/gi, '');
+    content = content.replace(
+      /<foreignObject\b[^<]*(?:(?!<\/foreignObject>)<[^<]*)*<\/foreignObject>/gi,
+      "",
+    );
     return content;
+  }
+
+  /**
+   * 只读文件头部字节（尺寸信息通常在文件头），避免大图整文件读入内存
+   */
+  private async readFileHead(
+    filePath: string,
+    maxBytes: number,
+  ): Promise<Buffer> {
+    const handle = await fs.promises.open(filePath, "r");
+    try {
+      const stat = await handle.stat();
+      const length = Math.min(stat.size, maxBytes);
+      const buffer = Buffer.alloc(length);
+      await handle.read(buffer, 0, length, 0);
+      return buffer;
+    } finally {
+      await handle.close();
+    }
   }
 
   /**
    * 获取图片尺寸（通过读取文件头）
    * 使用 image-size 库，支持 PNG/JPG/WebP/GIF/ICO/BMP 等格式
    */
-  private async getImageSize(filePath: string): Promise<{ width: number; height: number }> {
+  private async getImageSize(
+    filePath: string,
+  ): Promise<{ width: number; height: number }> {
     try {
-      const buffer = await fs.promises.readFile(filePath);
-      const dimensions = imageSize(buffer as unknown as Uint8Array);
-      if (dimensions && dimensions.width && dimensions.height) {
-        return { width: dimensions.width, height: dimensions.height };
+      // 先尝试只读前 256KB，个别尺寸信息靠后的文件（如部分 JPEG）再回退全量读取
+      const head = await this.readFileHead(filePath, 256 * 1024);
+      try {
+        const dimensions = imageSize(head as unknown as Uint8Array);
+        if (dimensions && dimensions.width && dimensions.height) {
+          return { width: dimensions.width, height: dimensions.height };
+        }
+      } catch {
+        const buffer = await fs.promises.readFile(filePath);
+        const dimensions = imageSize(buffer as unknown as Uint8Array);
+        if (dimensions && dimensions.width && dimensions.height) {
+          return { width: dimensions.width, height: dimensions.height };
+        }
       }
     } catch {
       // 读取失败时返回默认值

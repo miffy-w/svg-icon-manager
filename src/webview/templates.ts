@@ -28,6 +28,18 @@ const actionIcons = {
   </svg>`,
 };
 
+const folderIcon = `<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+  <path d="M1.5 3.5h4.586a1 1 0 01.707.293L8.207 5.207A1 1 0 008.914 5.5H14.5A1.5 1.5 0 0116 7v5.5a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 12.5v-9A1.5 1.5 0 011.5 2h4.086l1.414 1.414a.5.5 0 00.354.146H14.5a.5.5 0 01.5.5V7H1.5v5.5a.5.5 0 00.5.5h13a.5.5 0 00.5-.5V7z"/>
+</svg>`;
+
+const searchIcon = `<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+  <path fill-rule="evenodd" d="M11.5 7a4.499 4.499 0 11-8.998 0A4.499 4.499 0 0111.5 7zm-.82 4.74a6 6 0 111.06-1.06l3.04 3.04a.75.75 0 11-1.06 1.06l-3.04-3.04z"/>
+</svg>`;
+
+const chevronIcon = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+  <path d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"/>
+</svg>`;
+
 /**
  * Render an action button
  */
@@ -38,6 +50,17 @@ function actionButton(
   return `<button class="action-btn" data-action="${action}" title="${title}">
     ${actionIcons[action]}
   </button>`;
+}
+
+/**
+ * Escape special characters for safe interpolation into HTML text/attributes
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 /**
@@ -60,8 +83,12 @@ export function renderIconCard(
   asset: ImageAsset,
   webview?: vscode.Webview,
   workspaceRoot?: string,
+  hidden: boolean = false,
 ): string {
   const isImage = asset.format !== "svg";
+  const safeName = escapeHtml(asset.name);
+  const safeRelative = escapeHtml(asset.relativePath);
+  const safePath = escapeHtml(asset.path);
 
   // 生成预览内容
   let previewContent: string;
@@ -72,31 +99,32 @@ export function renderIconCard(
     // 图片使用 webview URI
     const fileUri = vscode.Uri.file(asset.path);
     const webviewUri = webview.asWebviewUri(fileUri);
-    previewContent = `<img src="${webviewUri}" alt="${asset.name}" loading="lazy" />`;
+    previewContent = `<img src="${webviewUri}" alt="${safeName}" loading="lazy" />`;
   } else {
     previewContent = `<span class="preview-placeholder">${asset.format.toUpperCase()}</span>`;
   }
 
   // 图片卡片添加点击预览功能
   const previewClickAttr = isImage
-    ? `data-preview="true" data-src="${asset.path}"`
+    ? `data-preview="true" data-src="${safePath}"`
     : "";
 
   // 尺寸信息文本
-  const dimText = asset.size.width > 0
-    ? `${asset.size.width}×${asset.size.height}`
-    : asset.format.toUpperCase();
+  const dimText =
+    asset.size.width > 0
+      ? `${asset.size.width}×${asset.size.height}`
+      : asset.format.toUpperCase();
   const fileSizeText = asset.fileSize ? formatFileSize(asset.fileSize) : "";
 
   return `
-    <div class="icon-card" data-path="${asset.path}" data-name="${asset.name}" data-relative="${asset.relativePath}" data-format="${asset.format}" data-filesize="${asset.fileSize || ""}">
+    <div class="icon-card${hidden ? " hidden" : ""}" data-path="${safePath}" data-name="${safeName}" data-relative="${safeRelative}" data-format="${asset.format}" data-filesize="${asset.fileSize || ""}">
       <div class="icon-preview ${isImage ? "image-preview" : ""}" ${previewClickAttr}>
         ${previewContent}
         ${isImage ? `<div class="image-overlay"></div>` : ""}
       </div>
       <div class="icon-info">
-        <div class="icon-name" title="${asset.name}">${asset.name}</div>
-        <div class="icon-path" title="${asset.relativePath}">${asset.relativePath}</div>
+        <div class="icon-name" title="${safeName}">${safeName}</div>
+        <div class="icon-path" title="${safeRelative}">${safeRelative}</div>
         <div class="icon-meta">${dimText}${fileSizeText ? ` · ${fileSizeText}` : ""}</div>
       </div>
       <div class="card-actions">
@@ -110,19 +138,131 @@ export function renderIconCard(
 
 /**
  * Render all asset cards
+ * @param visibleSet 可见资源的 relativePath 集合，未提供时全部可见
  */
 export function renderIconCards(
   assets: ImageAsset[],
   webview?: vscode.Webview,
   workspaceRoot?: string,
+  visibleSet?: Set<string>,
 ): string {
   return assets
-    .map((asset) => renderIconCard(asset, webview, workspaceRoot))
+    .map((asset) =>
+      renderIconCard(
+        asset,
+        webview,
+        workspaceRoot,
+        visibleSet ? !visibleSet.has(asset.relativePath) : false,
+      ),
+    )
     .join("");
 }
 
 /**
- * Render directory select options
+ * Render custom directory dropdown with hierarchy and search
+ */
+export function renderDirectoryDropdown(
+  directories: string[],
+  selectedDirectory: string,
+  dirCounts: Map<string, number>,
+  totalCount: number,
+): string {
+  // 触发按钮回显完整路径，过长时 CSS 截断，tooltip 显示全部
+  const triggerText = escapeHtml(selectedDirectory || "All Directories");
+  const filteredClass = selectedDirectory ? "filtered" : "";
+
+  // 构建 父目录 -> 子目录 映射，用于折叠箭头与树形连接线（├/└）绘制
+  const childrenMap = new Map<string, string[]>();
+  directories.forEach((dir) => {
+    const idx = dir.lastIndexOf("/");
+    const parent = idx > 0 ? dir.slice(0, idx) : "";
+    const list = childrenMap.get(parent);
+    if (list) {
+      list.push(dir);
+    } else {
+      childrenMap.set(parent, [dir]);
+    }
+  });
+  // 目录已按层级排序，同父目录的最后一项即最后一个子节点
+  const isLastChild = (dir: string): boolean => {
+    const idx = dir.lastIndexOf("/");
+    const parent = idx > 0 ? dir.slice(0, idx) : "";
+    const siblings = childrenMap.get(parent);
+    return !siblings || siblings[siblings.length - 1] === dir;
+  };
+
+  const itemsHtml = directories
+    .map((dir) => {
+      const parts = dir.split("/");
+      const depth = parts.length - 1;
+      const leaf = parts[parts.length - 1];
+      const activeClass = selectedDirectory === dir ? "active" : "";
+      const count = dirCounts.get(dir) ?? 0;
+      // 逐列绘制树形连接线：最后一列画 ├（还有兄弟）或 └（最后一个），
+      // 中间列在对应祖先还有后续兄弟时画贯穿竖线，否则留空
+      let guides = "";
+      for (let col = 0; col < depth; col++) {
+        if (col === depth - 1) {
+          const branchClass = isLastChild(dir)
+            ? "dir-guide-elbow"
+            : "dir-guide-tee";
+          guides += `<span class="dir-indent-guide ${branchClass}"></span>`;
+        } else {
+          const ancestor = parts.slice(0, col + 2).join("/");
+          const passClass = isLastChild(ancestor)
+            ? "dir-guide-blank"
+            : "dir-guide-line";
+          guides += `<span class="dir-indent-guide ${passClass}"></span>`;
+        }
+      }
+      // 有子目录显示折叠箭头，叶子目录用占位符保持对齐
+      const twisty = childrenMap.has(dir)
+        ? `<span class="dir-twisty">${chevronIcon}</span>`
+        : `<span class="dir-twisty dir-twisty-placeholder"></span>`;
+      // dir-label 与 dir-path-label 互斥显示：默认树形展示叶子名，搜索时平铺展示完整路径
+      const safeDir = escapeHtml(dir);
+      const safeLeaf = escapeHtml(leaf);
+      return `<div class="dir-dropdown-item ${activeClass}" data-dir="${safeDir}" data-search="${escapeHtml(dir.toLowerCase())}" title="${safeDir}">
+        ${guides}
+        ${twisty}
+        ${folderIcon}
+        <span class="dir-label">${safeLeaf}</span>
+        <span class="dir-path-label">${safeDir}</span>
+        <span class="dir-count">${count}</span>
+      </div>`;
+    })
+    .join("");
+
+  return `
+    <div class="dir-dropdown" id="dirDropdown">
+      <button class="dir-dropdown-trigger ${filteredClass}" id="dirDropdownTrigger" title="${triggerText}">
+        ${folderIcon}
+        <span class="dir-trigger-text">${triggerText}</span>
+        <span class="dir-trigger-arrow">▾</span>
+      </button>
+      <div class="dir-dropdown-panel" id="dirDropdownPanel">
+        <div class="dir-dropdown-search">
+          ${searchIcon}
+          <input type="text" id="dirDropdownSearch" placeholder="Filter directories..." autocomplete="off" />
+        </div>
+        <div class="dir-dropdown-list" id="dirDropdownList">
+          <div class="dir-dropdown-item dir-all ${!selectedDirectory ? "active" : ""}" data-dir="" data-search="all directories" title="All Directories">
+            <span class="dir-twisty dir-twisty-placeholder"></span>
+            ${folderIcon}
+            <span class="dir-label">All Directories</span>
+            <span class="dir-path-label">All Directories</span>
+            <span class="dir-count">${totalCount}</span>
+          </div>
+          ${itemsHtml}
+        </div>
+        <div class="dir-dropdown-empty" id="dirDropdownEmpty">No directories found</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render directory select options (DEPRECATED: use renderDirectoryDropdown instead)
  */
 export function renderDirectoryOptions(
   directories: string[],
@@ -198,7 +338,7 @@ export function getWebviewHtml(
   styles: string,
   scripts: string,
   searchQuery: string,
-  directoriesOptions: string,
+  directoriesDropdown: string,
   formatOptions: string,
   cardsHtml: string,
   statsText: string,
@@ -226,10 +366,7 @@ ${styles}
         ${formatOptions}
       </div>
       <div class="path-filter">
-        <select id="pathFilter">
-          <option value="">All Directories</option>
-          ${directoriesOptions}
-        </select>
+        ${directoriesDropdown}
       </div>
     </div>
     <button class="refresh-btn" id="refreshBtn">
